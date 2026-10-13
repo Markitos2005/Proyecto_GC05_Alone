@@ -8,7 +8,7 @@ Los objetivos del proyecto concretan los resultados que Lost&Found UEx debe alca
 | G-02 | Recuperación de objetos | El usuario puede solicitar la recuperación de un objeto encontrado y el responsable puede revisar la solicitud y gestionar su devolución. |
 | G-03 | Trazabilidad y confianza | El sistema mantiene información clara sobre el estado de cada objeto y de sus solicitudes de recuperación. |
 | G-04 | Acceso controlado | Los usuarios pueden identificarse mediante un proveedor de autenticación externo y las operaciones disponibles se adaptan a su rol dentro del sistema. |
-| G-05 | Incremento revisable | Una persona que no haya participado en el desarrollo puede instalar, ejecutar y evaluar el producto siguiendo la documentación proporcionada. |
+| G-05 | Producto revisable | Una persona que no haya participado en el desarrollo puede instalar, ejecutar y evaluar el producto siguiendo la documentación proporcionada. |
  
 ## 2. Indicadores de éxito
  
@@ -18,7 +18,7 @@ Los indicadores permiten comprobar objetivamente si los objetivos definidos se h
 | --- | --- | --- | --- |
 | M-01 | G-01 | Usuarios que completan el registro de un objeto | Al menos 4 de 5 participantes completan el proceso sin ayuda y en menos de 5 minutos. |
 | M-02 | G-01 | Usuarios que encuentran un objeto mediante búsqueda | Al menos 4 de 5 participantes localizan correctamente un objeto concreto mediante los filtros disponibles. |
-| M-03 | G-02 | Usuarios que completan una solicitud de recuperación | Al menos 4 de 5 participantes completan correctamente una reclamación sin ayuda. |
+| M-03 | G-02 | Usuarios que completan una solicitud de recuperación | Al menos 4 de 5 participantes completan correctamente una solicitud de recuperación sin ayuda. |
 | M-04 | G-03 | Estados correctamente reflejados | El 100 % de los objetos y solicitudes utilizados en las pruebas muestran correctamente su estado actual y su historial de cambios. |
 | M-05 | G-04 | Acceso y autorización | El 100 % de las pruebas definidas para autenticación y autorización producen el comportamiento esperado. |
 | M-06 | G-05 | Instalación y ejecución | Una persona que no haya implementado el producto puede seguir la documentación y ejecutar el sistema sin intervenciones no documentadas. |
@@ -31,11 +31,10 @@ Los indicadores permiten comprobar objetivamente si los objetivos definidos se h
 | SH-01 | Estudiantes y personal UEx (Usuario) | Recuperar objetos rápido y con confianza | Media | Pruebas de usabilidad M-01 a M-03 con 5 participantes |
 | SH-02 | Personal de conserjería (Responsable) | Menos consultas presenciales y control de devoluciones | Alta | Validar el flujo de reclamación en cada Sprint Review |
 | SH-03 | Administrador de la aplicación | Mantener categorías, ubicaciones y roles sin tocar código | Baja | Mantener informado; alcance S-06 |
-| SH-04 | Cliente simulado (conserjerías UEx) | Servicio centralizado y trazable | Alta | Aprueba cambios de alcance; revisión al final de cada release |
-| SH-05 | Profesorado de GPS | Línea base realista, trazabilidad y calidad | Muy alta | Gestionar de cerca: hitos H1–H4 y entregas |
-| SH-06 | Equipo de desarrollo | Alcance estable y bien especificado | Alta | Refinamiento semanal del backlog |
-| SH-07 | Revisor externo (M-06) | Instalar y evaluar sin ayuda | Media | Documentación de instalación en la release 3 |
-| SH-08 | Protección de datos UEx | Ningún dato personal real | Media | Cumplir R-03 y A-07 con datos sintéticos |
+| SH-04 | Profesorado de GPS | Línea base realista, trazabilidad y calidad | Muy alta | Gestionar de cerca: hitos H1–H4 y entregas |
+| SH-05 | Equipo de desarrollo | Alcance estable y bien especificado | Alta | Refinamiento semanal del backlog |
+| SH-06 | Revisor externo (M-06) | Instalar y evaluar sin ayuda | Media | Documentación de instalación en la release 3 |
+| SH-07 | Protección de datos UEx | Ningún dato personal real | Media | Cumplir R-03 y A-07 con datos sintéticos |
  
 ## 4. Alcance incluido
  
@@ -50,7 +49,7 @@ El proyecto incluye las funcionalidades necesarias para proporcionar un recorrid
 - Gestión de roles básicos: Usuario, Responsable y Administrador.
 ### S-02 — Gestión de objetos
  
-Los usuarios podrán:
+Los usuarios autenticados podrán:
  
 - Registrar un objeto perdido (aviso de pérdida).
 - Registrar un objeto encontrado.
@@ -71,18 +70,18 @@ El sistema permitirá:
 - Filtrar por ubicación.
 - Filtrar por estado.
 - Consultar la información pública asociada a un objeto. La información pública incluye categoría, ubicación, fecha y descripción genérica; los rasgos identificativos no son públicos.
-### S-04 — Reclamación de objetos
+### S-04 — Solicitud de recuperación
  
-Los usuarios podrán:
+Los usuarios autenticados podrán:
  
 - Solicitar la recuperación de un objeto encontrado.
 - Proporcionar información adicional para demostrar que el objeto les pertenece.
 - Consultar el estado de sus solicitudes.
 - Recibir un aviso dentro de la aplicación cuando cambie el estado de una solicitud.
 - Cancelar una solicitud propia mientras siga pendiente.
-### S-05 — Gestión de reclamaciones
+### S-05 — Gestión de reclamaciones y devoluciones
  
-Los usuarios con permisos de responsable podrán:
+Los usuarios con rol Responsable podrán:
  
 - Confirmar la recepción de un objeto encontrado en su punto de entrega.
 - Consultar las solicitudes pendientes.
@@ -92,7 +91,7 @@ Los usuarios con permisos de responsable podrán:
 - Consultar el historial asociado a la gestión.
 ### S-06 — Gestión administrativa
  
-Los usuarios con permisos administrativos podrán:
+Los usuarios con rol Administrador podrán:
  
 - Gestionar las categorías disponibles.
 - Gestionar las ubicaciones y puntos de entrega utilizados por el sistema.
@@ -100,7 +99,7 @@ Los usuarios con permisos administrativos podrán:
 - Consultar la información necesaria para mantener el funcionamiento de la aplicación.
 ### S-07 — Datos de demostración
  
-El sistema utilizará un conjunto controlado de objetos, usuarios y operaciones ficticias para permitir la demostración y evaluación del producto.
+El sistema incluirá un conjunto controlado de objetos, usuarios y operaciones ficticias que permita demostrar y evaluar los flujos principales del producto.
  
 ### Estados del sistema
  
@@ -110,7 +109,7 @@ El sistema utilizará un conjunto controlado de objetos, usuarios y operaciones 
 | Aviso de pérdida | Activo → Cerrado |
 | Solicitud de recuperación | Pendiente → Aprobada / Rechazada; Cancelada si el reclamante la retira antes de su revisión |
  
-Cada cambio de estado genera un evento de historial con fecha, usuario y motivo.
+Un objeto encontrado pasa a **Disponible** cuando el Responsable confirma su recepción en el punto de entrega. Pasa a **En reclamación** cuando existe al menos una solicitud de recuperación pendiente. Una solicitud aprobada permite marcar el objeto como **Devuelto**. Cada cambio de estado genera un evento de historial con fecha, usuario y motivo.
  
 ## 5. Supuestos
  
@@ -153,13 +152,12 @@ Cada épica y funcionalidad deberá contribuir al menos a uno de los objetivos d
 | EP-01 | Autenticación y roles | S-01 | G-04 | M-05 |
 | EP-02 | Registro de objetos | S-02 | G-01 | M-01 |
 | EP-03 | Búsqueda y consulta | S-03 | G-01 | M-02 |
-| EP-04 | Solicitud de recuperación | S-04 | G-02 | M-03 |
-| EP-05 | Gestión de reclamaciones y devoluciones | S-05 | G-02, G-03 | M-03, M-04 |
-| EP-06 | Administración | S-06 | G-04 | M-05 |
-| EP-07 | Trazabilidad e historial | S-05, R-07 | G-03 | M-04 |
-| EP-08 | Producto revisable | S-07, R-08, R-09 | G-05 | M-06, M-07 |
+| EP-04 | Recuperación, reclamaciones, devoluciones e historial | S-04, S-05, R-07 | G-02, G-03 | M-03, M-04 |
+| EP-05 | Administración | S-06 | G-04 | M-05 |
  
 Una funcionalidad que no contribuya a ningún objetivo se considerará fuera del alcance hasta que se apruebe explícitamente un cambio en goals.md.
+
+S-07, R-08 y R-09 son requisitos transversales a todas las épicas y se comprobarán mediante los criterios de salida de cada release. Su cumplimiento contribuirá a G-05 y se verificará mediante M-06 y M-07, sin constituir una épica funcional independiente.
  
 ## 8. Gestión de cambios
  
@@ -177,13 +175,12 @@ Cualquier modificación de un objetivo, indicador, alcance, exclusión, supuesto
 | ID | Fecha | Decisión | Apartados afectados |
 | --- | --- | --- | --- |
 | D-01 | 30/09/2026 | Los rasgos identificativos de los objetos encontrados no son públicos; el reclamante demuestra la propiedad describiéndolos. | S-02, S-03, S-05, R-11 |
-| D-02 | 30/09/2026 | Los avisos de pérdida son públicos y no hay emparejamiento automático. | S-02, EX-08 |
-| D-03 | 30/09/2026 | Quien registra un objeto encontrado indica el punto de entrega; el responsable confirma la recepción. | S-02, S-05, S-06, A-04, A-09 |
-| D-04 | 30/09/2026 | Todo usuario nuevo entra como Usuario; el administrador asigna el rol Responsable, que gestiona todas las ubicaciones. | S-01, S-06, EX-12 |
+| D-02 | 30/09/2026 | Los avisos de pérdida son públicos y no hay emparejamiento automático. | S-02, S-03 |
+| D-03 | 30/09/2026 | Quien registra un objeto encontrado indica el punto de entrega; el Responsable confirma la recepción. | S-02, S-05, S-06, A-04, A-09 |
+| D-04 | 30/09/2026 | Todo usuario nuevo entra como Usuario; el Administrador asigna el rol Responsable, que puede gestionar las reclamaciones de todas las ubicaciones. | S-01, S-05, S-06 |
 | D-05 | 30/09/2026 | Se permiten varias solicitudes por objeto; al aprobar una, las demás se rechazan automáticamente con motivo. | S-05, Estados |
-| D-06 | 30/09/2026 | El autor puede editar su objeto sin solicitudes y cerrar su aviso de pérdida; no existe borrado. | S-02, EX-11 |
-| D-07 | 30/09/2026 | Solo notificaciones dentro de la aplicación. | S-04, EX-10 |
+| D-06 | 30/09/2026 | El autor puede editar su objeto sin solicitudes y cerrar su aviso de pérdida; no existe borrado. | S-02 |
+| D-07 | 30/09/2026 | Solo se utilizarán notificaciones dentro de la aplicación. | S-04 |
 | D-08 | 30/09/2026 | Cada cambio de estado genera un evento de historial visible para responsables y administradores. | S-05, M-04, Estados |
 | C-01 | 30/09/2026 | Se añade la sección de stakeholders y la tabla de épicas a la trazabilidad. | 3, 8 |
- 
-Impacto: los cambios añaden las historias US-10, US-22, US-24 y US-25 al backlog. Ninguna afecta a la release 1; US-24 y US-25 tienen prioridad Could y pueden salir del alcance si la capacidad no alcanza.
+| D-09 | 12/10/2026 | Se integran la solicitud de recuperación, la gestión de reclamaciones, las devoluciones y el historial en EP-04; EP-07 y EP-08 dejan de ser épicas independientes. Los requisitos de producto revisable se mantienen como condiciones transversales de release. | 7, S-04, S-05, S-07, R-07, R-08, R-09, G-02, G-03, G-05, M-03, M-04, M-06, M-07 |
