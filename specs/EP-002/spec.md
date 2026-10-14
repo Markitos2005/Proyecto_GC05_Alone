@@ -1,8 +1,8 @@
-﻿# EP-002 — Gestión y exploración de objetos encontrados
+﻿# EP-002 — Gestión y exploración de objetos perdidos
 
 ## Épica
 
-Como usuario de Lost&Found UEx, quiero publicar, explorar y gestionar objetos encontrados, para facilitar que sus propietarios los identifiquen y puedan iniciar el contacto para recuperarlos.
+Como conserje, quiero publicar, explorar y gestionar objetos encontrados o depositados en conserjería, para facilitar que sus propietarios los identifiquen y puedan iniciar el contacto para recuperarlos.
 
 - **Objetivos relacionados:** G-01, G-02
 - **Alcance relacionado:** S-02 — Feed de hallazgos
@@ -17,7 +17,7 @@ Como usuario de Lost&Found UEx, quiero publicar, explorar y gestionar objetos en
 
 ### US-006 — Publicar un hallazgo con imágenes, categorías y geolocalización
 
-Como usuario autenticado, quiero publicar un objeto encontrado con imágenes, una categoría y una ubicación geográfica, para aportar información suficiente que facilite su identificación.
+Como conserje de la UEX autenticado en el sistema, quiero publicar un objeto encontrado con imágenes, una categoría y una ubicación geográfica, para aportar información suficiente que facilite su identificación.
 
 - **Prioridad:** Must
 - **Estimación:** 14 h-p
@@ -42,9 +42,9 @@ Como usuario autenticado, quiero publicar un objeto encontrado con imágenes, un
 - Verificar que la información pública y los rasgos privados se almacenan y muestran de forma separada.
 - Cumplir R-03, R-04, R-05, R-08, R-09, A-03 y A-07.
 
-### US-007 — Consultar y explorar el feed público de hallazgos
+### US-007 — Búsqueda de objeto perdido
 
-Como usuario, quiero consultar y explorar un feed público paginado de objetos encontrados, para revisar hallazgos activos.
+Como usuario de Lost&Found UEx, quiero rellenar un formulario sencillo indicando la categoría y los detalles básicos del objeto perdido, y ver a partir de esta información objetos perdidos que coincidan con la descripción aportada.
 
 - **Prioridad:** Must
 - **Estimación:** 10 h-p
@@ -94,7 +94,7 @@ Como usuario, quiero filtrar los hallazgos por fechas, categorías, para localiz
 
 ### US-009 — Gestionar un hallazgo propio
 
-Como usuario que ha publicado un hallazgo, quiero editar sus datos, marcarlo como devuelto o retirarlo, para mantener actualizada la publicación y reflejar la situación del objeto.
+Como conserje que ha publicado un hallazgo, quiero editar sus datos, marcarlo como devuelto o retirarlo, para mantener actualizada la publicación y reflejar la situación del objeto.
 
 - **Prioridad:** Should
 - **Estimación:** 10 h-p
@@ -118,6 +118,18 @@ Como usuario que ha publicado un hallazgo, quiero editar sus datos, marcarlo com
 - Verificar edición, transición `Activo → Devuelto`, transición `Activo → Retirado` y rechazo de operaciones por otros usuarios.
 - Verificar que los hallazgos Devueltos y Retirados no aparecen en el feed público y conservan su historial.
 - Cumplir R-04, R-05, R-07, R-08, R-09 y D-06.
+
+### US-010: Revisión y validación de solicitudes de devolución
+
+Como conserje que ha publicado un hallazgo, quiero poder revisar solicitudes de devolución, con información relativa al objeto perdido aportada por el usuario, para decidir si efectuar o no la devolución.
+
+- **Prioridad:** Should
+- **Estimación:** 12 h-p
+- **Incertidumbre:** Media
+- **Predecesoras:** US-006
+- **Plan inicial:** IT-03
+
+
 
 ## Trazabilidad de la épica
 

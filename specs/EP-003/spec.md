@@ -1,4 +1,4 @@
-# EP-003 — Feed de solicitudes de búsqueda
+﻿# EP-003 — Feed de solicitudes de búsqueda
 
 ## Épica
 
@@ -8,7 +8,7 @@ Como usuario autenticado de Lost&Found UEx, quiero publicar y consultar solicitu
 - **Alcance relacionado:** S-03 — Feed de solicitudes de búsqueda
 - **Indicador relacionado:** M-02 — Usuarios que encuentran un objeto mediante búsqueda
 - **Prioridad:** Must
-- **Estimación:** 31 h-p (aprox. 4 semanas-persona a 8 h-p por semana)
+- **Estimación:** 25 h-p (aprox. 4 semanas-persona a 8 h-p por semana)
 - **Incertidumbre:** Media
 - **Predecesoras:** EP-001
 - **Plan inicial:** IT-03
@@ -20,7 +20,7 @@ Como usuario autenticado de Lost&Found UEx, quiero publicar y consultar solicitu
 Como usuario autenticado, quiero publicar una solicitud sobre un objeto que he perdido, para informar de sus características y facilitar que alguien pueda reconocerlo.
 
 - **Prioridad:** Must
-- **Estimación:** 6 h-p
+- **Estimación:** 7 h-p
 - **Incertidumbre:** Media
 - **Predecesoras:** US-001, US-002
 - **Plan inicial:** IT-03
@@ -41,7 +41,7 @@ Como usuario autenticado, quiero publicar una solicitud sobre un objeto que he p
 
 ### US-011 — Consultar el feed de solicitudes
 
-Como usuario, quiero consultar las solicitudes de búsqueda activas, para comprobar si alguien ha encontrado un objeto parecido al que busco o identificar posibles necesidades de contacto.
+Como conserje o usuario, quiero consultar las solicitudes de búsqueda activas, para comprobar si alguien ha encontrado un objeto parecido al que busco o identificar posibles necesidades de contacto.
 
 - **Prioridad:** Must
 - **Estimación:** 4 h-p
@@ -67,7 +67,7 @@ Como usuario, quiero consultar las solicitudes de búsqueda activas, para compro
 Como usuario, quiero buscar y filtrar las solicitudes de búsqueda, para localizar publicaciones relacionadas con el objeto que he encontrado o que estoy buscando.
 
 - **Prioridad:** Must
-- **Estimación:** 4 h-p
+- **Estimación:** 3 h-p
 - **Incertidumbre:** Media
 - **Predecesoras:** US-011
 - **Plan inicial:** IT-03
@@ -90,7 +90,7 @@ Como usuario, quiero buscar y filtrar las solicitudes de búsqueda, para localiz
 Como usuario que ha publicado una solicitud, quiero editar su información, para mantener actualizada la descripción del objeto que busco.
 
 - **Prioridad:** Should
-- **Estimación:** 5 h-p
+- **Estimación:** 7 h-p
 - **Incertidumbre:** Media
 - **Predecesoras:** US-010
 - **Plan inicial:** IT-03
@@ -107,76 +107,30 @@ Como usuario que ha publicado una solicitud, quiero editar su información, para
 - Verificar la edición por el autor y el rechazo de la operación para otros usuarios.
 - Cumplir R-04, R-05, R-08, R-09 y D-06.
 
-### US-019 — Filtrar solicitudes
 
-Como usuario, quiero filtrar las solicitudes por categoría, ubicación y estado, para reducir los resultados relevantes sin consultar información privada.
-
-- **Prioridad:** Must
-- **Estimación:** 4 h-p
-- **Incertidumbre:** Media
-- **Predecesoras:** US-011
-- **Plan inicial:** IT-03
-
-#### Criterios de aceptación
-
-- **US-019-AC-01:** El usuario puede filtrar por categoría, ubicación aproximada y estado.
-- **US-019-AC-02:** El usuario puede combinar varios filtros.
-- **US-019-AC-03:** El usuario puede eliminar los filtros y recuperar el listado completo.
-- **US-019-AC-04:** Los filtros solo se aplican sobre datos públicos.
-- **US-019-AC-05:** El sistema informa de forma comprensible cuando no existen coincidencias.
-
-#### Verificación y restricciones
-
-- Verificar cada filtro por separado, la combinación de filtros y su limpieza.
-- Verificar resultados vacíos y que nunca se usa información privada.
-- Cumplir R-03, R-04, R-08 y R-09.
-
-### US-020 — Cerrar una solicitud propia
+### US-014 — Cerrar una solicitud propia
 
 Como usuario que ha publicado una solicitud, quiero cerrarla cuando ya no necesite encontrar el objeto, para que deje de aparecer entre las solicitudes activas.
 
 - **Prioridad:** Should
-- **Estimación:** 4 h-p
+- **Estimación:** 3 h-p
 - **Incertidumbre:** Baja
 - **Predecesoras:** US-010
 - **Plan inicial:** IT-03
 
 #### Criterios de aceptación
 
-- **US-020-AC-01:** El autor puede cerrar una solicitud propia que esté Activa.
-- **US-020-AC-02:** La solicitud pasa de Activa a Cerrada y deja de aparecer en el feed activo.
-- **US-020-AC-03:** El sistema registra el cierre con fecha, usuario y motivo cuando proceda.
-- **US-020-AC-04:** Un usuario no puede cerrar una solicitud publicada por otra persona.
-- **US-020-AC-05:** Una solicitud Cerrada no puede cerrarse de nuevo mediante esta operación.
+- **US-014-AC-01:** El autor puede cerrar una solicitud propia que esté Activa.
+- **US-014-AC-02:** La solicitud pasa de Activa a Cerrada y deja de aparecer en el feed activo.
+- **US-014-AC-03:** El sistema registra el cierre con fecha, usuario y motivo cuando proceda.
+- **US-014-AC-04:** Un usuario no puede cerrar una solicitud publicada por otra persona.
+- **US-014-AC-05:** Una solicitud Cerrada no puede cerrarse de nuevo mediante esta operación.
 
 #### Verificación y restricciones
 
 - Verificar la transición Activa → Cerrada y la desaparición del feed activo.
 - Verificar el rechazo de la operación para otro usuario y para una solicitud ya cerrada.
 - Cumplir R-05, R-07, R-08, R-09 y D-06.
-
-### US-021 — Consultar el detalle de una solicitud
-
-Como usuario, quiero consultar el detalle público de una solicitud, para valorar si mi hallazgo puede corresponder con el objeto buscado.
-
-- **Prioridad:** Should
-- **Estimación:** 4 h-p
-- **Incertidumbre:** Baja
-- **Predecesoras:** US-011
-- **Plan inicial:** IT-03
-
-#### Criterios de aceptación
-
-- **US-021-AC-01:** El usuario puede abrir el detalle de una solicitud desde el feed o desde los resultados de búsqueda.
-- **US-021-AC-02:** El detalle muestra categoría, descripción pública, ubicación aproximada, fecha y estado.
-- **US-021-AC-03:** El detalle no muestra información privada ni la dirección de correo del autor.
-- **US-021-AC-04:** Una solicitud Cerrada no se muestra como activa.
-
-#### Verificación y restricciones
-
-- Verificar el acceso al detalle desde el feed y desde una búsqueda.
-- Verificar el aislamiento de la información privada y el estado mostrado.
-- Cumplir R-03, R-05, R-08, R-09 y R-11.
 
 ## Trazabilidad de la épica
 
