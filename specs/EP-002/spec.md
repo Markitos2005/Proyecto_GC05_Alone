@@ -1,4 +1,4 @@
-﻿# EP-002 — Gestión y exploración de objetos encontrados
+# EP-002 — Gestión y exploración de objetos encontrados
 
 ## Épica
 
