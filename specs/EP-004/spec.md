@@ -1,12 +1,12 @@
-# EP-004 — Contacto y trazabilidad
+﻿# EP-004 — Contacto y trazabilidad
 
 ## Épica
 
-Como usuario autenticado de Lost&Found UEx, quiero iniciar un contacto por correo con el autor de un hallazgo o de una solicitud de búsqueda y consultar la trazabilidad de mis publicaciones y contactos, para acordar la recuperación del objeto fuera de la aplicación sin exponer datos innecesarios.
+Como usuario autenticado de Lost&Found UEx, quiero iniciar un contacto por correo con el autor de un hallazgo, para comunicar que busco ese objeto y acordar su recuperación fuera de la aplicación.
 
 - **Objetivos relacionados:** G-02, G-03
-- **Alcance relacionado:** S-04 — Contacto sobre una publicación; S-05 — Trazabilidad de publicaciones
-- **Indicadores relacionados:** M-03 — Usuarios que completan un contacto; M-04 — Estados e historial correctamente reflejados
+- **Alcance relacionado:** S-04 — Contacto sobre un hallazgo; S-05 — Cierre y trazabilidad de publicaciones; R-07 — Trazabilidad
+- **Indicadores relacionados:** M-03 — Usuarios que contactan sobre un hallazgo; M-04 — Estados correctamente reflejados
 - **Prioridad:** Must
 - **Estimación:** 31 h-p
 - **Incertidumbre:** Media
@@ -15,146 +15,105 @@ Como usuario autenticado de Lost&Found UEx, quiero iniciar un contacto por corre
 
 ## Historias de usuario
 
-### US-014 — Contactar sobre un hallazgo
+### US-014 — Solicitar la devolución de un objeto
 
-Como usuario autenticado que ha perdido un objeto, quiero abrir un correo preconfigurado dirigido al autor de un hallazgo activo, para comunicarle que creo que el objeto es mío y aportar información que permita comprobarlo.
+Como usuario autenticado, quiero rellenar un formulario, aportando la información necesaria para demostrar la propiedad del objeto pérdido, para que el sistema informe al conserje y que éste pueda validar o no la solicitud según la información aportada.
 
 - **Prioridad:** Must
-- **Estimación:** 6 h-p
+- **Estimación:** 5 h-p
 - **Incertidumbre:** Alta
-- **Predecesoras:** US-002, US-007, US-010
+- **Predecesoras:** US-007, US-010
 - **Plan inicial:** IT-04
 
 #### Criterios de aceptación
 
-- **US-014-AC-01:** El usuario autenticado puede iniciar el contacto desde el detalle de un hallazgo Activo publicado por otra persona.
-- **US-014-AC-02:** El sistema no permite iniciar el contacto sobre un hallazgo propio, Devuelto o Retirado.
-- **US-014-AC-03:** El usuario puede vincular opcionalmente una de sus solicitudes de búsqueda Activas y añadir un texto con información identificativa del objeto.
-- **US-014-AC-04:** El sistema valida la longitud del texto añadido para que el enlace `mailto:` resultante pueda abrirse correctamente.
-- **US-014-AC-05:** El sistema abre el cliente de correo predeterminado mediante un enlace `mailto:` con el destinatario, el asunto y el cuerpo preconfigurados.
-- **US-014-AC-06:** El asunto incluye la referencia del hallazgo, y el cuerpo incluye la referencia de la solicitud vinculada cuando exista y el texto aportado por el usuario.
-- **US-014-AC-07:** El mensaje no incluye los rasgos identificativos privados del hallazgo.
-- **US-014-AC-08:** El sistema registra el contacto con estado `Iniciado`, la fecha, el usuario que lo inicia y el hallazgo relacionado.
-- **US-014-AC-09:** La aplicación informa de que el contacto se ha iniciado, sin afirmar que el correo se haya enviado, recibido o leído.
-- **US-014-AC-10:** La dirección de correo del autor solo se incorpora al enlace `mailto:` del usuario que inicia el contacto y no se muestra en el feed, en el detalle público ni en las respuestas públicas de la API.
+- **US-014-AC-01:** El usuario autenticado puede iniciar el contacto desde el detalle de un hallazgo activo.
+- **US-014-AC-02:** El usuario puede indicar la referencia de su solicitud de búsqueda y aportar información adicional sobre el objeto que busca.
+- **US-014-AC-03:** El sistema abre el cliente de correo predeterminado mediante un enlace `mailto:` con el destinatario, asunto y contenido preconfigurados.
+- **US-014-AC-04:** El mensaje incluye una referencia del hallazgo y suficiente información para que el autor pueda identificar el contexto del contacto.
+- **US-014-AC-05:** La aplicación informa de que el contacto se ha iniciado, sin afirmar que el correo se haya enviado o leído.
+- **US-014-AC-06:** La dirección de correo del autor se muestra únicamente al usuario que inicia el contacto y no se publica en el feed.
 
 #### Verificación y restricciones
 
-- Verificar que el enlace `mailto:` contiene el destinatario, el asunto y el cuerpo esperados, con y sin solicitud vinculada.
-- Verificar el rechazo del contacto sobre hallazgos propios, Devueltos y Retirados, y con textos que superan el límite.
-- Verificar que el contacto queda registrado como `Iniciado` y que la aplicación no afirma que el correo se haya enviado.
-- Verificar que la dirección del autor y los rasgos privados no aparecen en respuestas públicas de la API.
-- Utilizar únicamente datos ficticios o sintéticos durante las pruebas.
-- Cumplir R-03, R-04, R-05, R-07, R-08, R-09, A-01 y D-05.
+- Verificar que el enlace `mailto:` contiene el destinatario, asunto y contenido esperados.
+- Verificar que el sistema no afirma que el correo se haya enviado cuando la aplicación no puede confirmarlo.
+- Verificar la validación del contenido y la referencia del hallazgo.
+- Cumplir R-03, R-04, R-05, R-08, R-09, A-01 y D-05.
 
-### US-015 — Contactar sobre una solicitud de búsqueda
+### US-015 — Contactar sobre una pérdida
 
-Como usuario autenticado que ha encontrado un objeto, quiero abrir un correo preconfigurado dirigido al autor de una solicitud de búsqueda activa, para comunicarle que puedo tener el objeto que busca y acordar cómo comprobarlo.
+Como usuario autenticado, quiero comunicar la posesión de un objeto cuando una solicitud de recuperación se corresponda con la descripción de dicho objeto.
 
 - **Prioridad:** Should
 - **Estimación:** 5 h-p
 - **Incertidumbre:** Alta
-- **Predecesoras:** US-014, US-021
+- **Predecesoras:** US-009, US-020
 - **Plan inicial:** IT-04
 
 #### Criterios de aceptación
 
-- **US-015-AC-01:** El usuario autenticado puede iniciar el contacto desde el detalle de una solicitud Activa publicada por otra persona.
-- **US-015-AC-02:** El sistema no permite iniciar el contacto sobre una solicitud propia o Cerrada.
-- **US-015-AC-03:** El usuario puede vincular opcionalmente uno de sus hallazgos Activos y añadir un texto que describa dónde y cuándo encontró el objeto.
-- **US-015-AC-04:** El sistema abre el cliente de correo predeterminado mediante un enlace `mailto:` con el destinatario, el asunto con la referencia de la solicitud y el cuerpo preconfigurados.
-- **US-015-AC-05:** El mensaje no incluye la información privada de la solicitud ni los rasgos identificativos privados del hallazgo vinculado.
-- **US-015-AC-06:** El sistema registra el contacto con estado `Iniciado`, la fecha, el usuario que lo inicia y la solicitud relacionada.
-- **US-015-AC-07:** La aplicación informa de que el contacto se ha iniciado, sin afirmar que el correo se haya enviado, recibido o leído.
-- **US-015-AC-08:** La dirección de correo del autor de la solicitud no se muestra en el feed, en el detalle público ni en las respuestas públicas de la API.
+- **US-015-AC-01:** El autor puede marcar como Devuelto o Retirado un hallazgo Activo propio, o cerrar una solicitud Activa propia.
+- **US-015-AC-02:** Al finalizar una publicación, el hallazgo pasa a Devuelto o Retirado, la solicitud pasa a Cerrada y la publicación deja de aparecer en el feed activo.
+- **US-015-AC-03:** El sistema registra el cierre con la fecha, el usuario y el motivo cuando proceda.
+- **US-015-AC-04:** Un usuario no puede cerrar ni modificar publicaciones de otra persona.
+- **US-015-AC-05:** El cierre de una publicación no elimina su información histórica ni los contactos asociados.
 
 #### Verificación y restricciones
 
-- Verificar el enlace `mailto:` con y sin hallazgo vinculado.
-- Verificar el rechazo del contacto sobre solicitudes propias y Cerradas.
-- Verificar que la información privada de la solicitud y del hallazgo no aparece en el mensaje.
-- Cumplir R-03, R-04, R-05, R-07, R-08, R-09 y D-05.
+- Verificar las transiciones Activo → Devuelto/Retirado de hallazgos y Activa → Cerrada de solicitudes propias.
+- Verificar que una publicación cerrada no aparece en los feeds activos y que sus datos históricos se conservan.
+- Cumplir D-06, R-05, R-07, R-08 y R-09.
 
-### US-027 — Elegir la información de contacto incluida
+### US-016 — Consultar el historial básico
 
-Como usuario autenticado, quiero elegir si mi teléfono se incluye en los correos de contacto y revisar el mensaje antes de abrirlo, para facilitar la recuperación sin exponer datos que no deseo compartir.
+Como usuario autenticado, quiero consultar el historial básico de mis publicaciones y contactos, para conocer las acciones realizadas y conservar la trazabilidad del caso sin que la aplicación certifique la entrega física.
 
 - **Prioridad:** Should
 - **Estimación:** 4 h-p
-- **Incertidumbre:** Media
-- **Predecesoras:** US-004, US-014, US-015
-- **Plan inicial:** IT-04
-
-#### Criterios de aceptación
-
-- **US-027-AC-01:** El usuario puede indicar en su perfil si su teléfono se incluye por defecto en el cuerpo de los correos de contacto.
-- **US-027-AC-02:** Antes de abrir el cliente de correo, la aplicación muestra una vista previa con el asunto y el cuerpo que se incorporarán.
-- **US-027-AC-03:** Desde la vista previa, el usuario puede incluir o excluir el teléfono para ese contacto concreto.
-- **US-027-AC-04:** Si el usuario no tiene teléfono en su perfil, la opción no se ofrece y el mensaje no incluye ningún teléfono.
-- **US-027-AC-05:** El mensaje solo incluye la información autorizada por el usuario.
-- **US-027-AC-06:** El cambio de preferencia se aplica a los nuevos contactos y no altera los contactos ya registrados.
-
-#### Verificación y restricciones
-
-- Verificar el correo con el teléfono incluido y excluido, con la preferencia por defecto y con el cambio puntual.
-- Verificar el comportamiento cuando el perfil no tiene teléfono.
-- Verificar que la preferencia no expone el teléfono en feeds, detalles públicos ni respuestas públicas de la API.
-- Cumplir R-03, R-04, R-05, R-08, R-09, R-11 y D-05.
-
-### US-026 — Consultar los contactos iniciados
-
-Como usuario autenticado, quiero consultar los contactos que he iniciado y los que se han iniciado sobre mis publicaciones, para recordar qué coordinaciones están en curso sin asumir que los correos se hayan entregado.
-
-- **Prioridad:** Should
-- **Estimación:** 6 h-p
 - **Incertidumbre:** Media
 - **Predecesoras:** US-014, US-015
 - **Plan inicial:** IT-04
 
 #### Criterios de aceptación
 
-- **US-026-AC-01:** El usuario puede consultar los contactos que ha iniciado sobre publicaciones de otras personas.
-- **US-026-AC-02:** El usuario puede consultar los contactos iniciados por otras personas sobre sus propias publicaciones.
-- **US-026-AC-03:** Cada contacto muestra la publicación relacionada, su estado actual, la fecha de inicio y el estado `Iniciado`.
-- **US-026-AC-04:** Los contactos se muestran ordenados del más reciente al más antiguo.
-- **US-026-AC-05:** El sistema no muestra estados de envío, recepción, lectura o respuesta que no pueda verificar.
-- **US-026-AC-06:** Un contacto asociado a una publicación Devuelta, Retirada o Cerrada sigue disponible.
-- **US-026-AC-07:** Un usuario no puede consultar contactos en los que no participa, ni desde la interfaz ni desde la API.
-- **US-026-AC-08:** El sistema informa de forma comprensible cuando no existen contactos.
+- **US-016-AC-01:** El autor puede consultar el historial básico de sus hallazgos y solicitudes de búsqueda.
+- **US-016-AC-02:** El historial puede incluir la creación, edición y cierre de la publicación, así como el inicio de contactos asociados.
+- **US-016-AC-03:** Cada evento muestra como mínimo la acción o estado, la fecha y el usuario que la realizó.
+- **US-016-AC-04:** El usuario no puede modificar ni eliminar eventos del historial.
+- **US-016-AC-05:** Un usuario no puede consultar el historial privado de publicaciones o contactos de otra persona.
+- **US-016-AC-06:** El historial no certifica que el correo haya sido enviado, recibido o leído, ni que la entrega física se haya producido.
 
 #### Verificación y restricciones
 
-- Verificar la consulta con contactos iniciados y recibidos sobre varias publicaciones, incluidas publicaciones finalizadas.
-- Verificar el aislamiento entre tres usuarios distintos y la ausencia de estados de correo no verificables.
-- Cumplir D-05, D-08, R-05, R-07, R-08 y R-09.
+- Verificar que el historial refleja la creación, edición, cierre e inicio de contacto en el orden correcto.
+- Verificar el aislamiento del historial entre dos usuarios distintos.
+- Verificar que cerrar una publicación no elimina su historial.
+- Cumplir A-05, A-06, D-05, D-06, R-05, R-07, R-08 y R-09.
 
-### US-016 — Consultar el historial básico
+### US-026 — Consultar los contactos iniciados
 
-Como usuario autenticado, quiero consultar el historial de cada una de mis publicaciones, para conocer las acciones realizadas y conservar la trazabilidad del caso sin que la aplicación certifique la entrega física.
+Como usuario autenticado, quiero consultar los contactos que he iniciado sobre mis publicaciones, para recordar con quién he intentado coordinar la recuperación sin asumir que el correo haya sido entregado.
 
 - **Prioridad:** Should
 - **Estimación:** 5 h-p
 - **Incertidumbre:** Media
-- **Predecesoras:** US-009, US-013, US-020, US-026
+- **Predecesoras:** US-014, US-016
 - **Plan inicial:** IT-04
 
 #### Criterios de aceptación
 
-- **US-016-AC-01:** El autor puede consultar el historial de un hallazgo o una solicitud propia desde su detalle.
-- **US-016-AC-02:** El historial incluye la creación, las ediciones, los cambios de estado y los contactos iniciados sobre la publicación.
-- **US-016-AC-03:** Cada evento muestra la acción o el estado, la fecha, el usuario que la realizó y el motivo cuando proceda.
-- **US-016-AC-04:** Los eventos se muestran en orden cronológico.
-- **US-016-AC-05:** El historial se conserva cuando la publicación pasa a Devuelto, Retirado o Cerrada.
-- **US-016-AC-06:** El usuario no puede modificar ni eliminar eventos del historial, ni desde la interfaz ni desde la API.
-- **US-016-AC-07:** Un usuario no puede consultar el historial de publicaciones de otra persona.
-- **US-016-AC-08:** El historial no certifica que el correo haya sido enviado, recibido o leído, ni que la entrega física se haya producido.
+- **US-026-AC-01:** El usuario puede consultar los contactos iniciados desde sus hallazgos y solicitudes relacionadas.
+- **US-026-AC-02:** Cada contacto muestra la publicación relacionada, la fecha de inicio y el estado `Iniciado`.
+- **US-026-AC-03:** El sistema no muestra estados de envío, recepción, lectura o respuesta que no pueda verificar.
+- **US-026-AC-04:** Un usuario no puede consultar los contactos privados iniciados por otra persona.
+- **US-026-AC-05:** Un contacto asociado a una publicación finalizada permanece disponible en el historial.
 
 #### Verificación y restricciones
 
-- Verificar que el historial refleja la creación, la edición, el cierre y el inicio de contacto en el orden correcto.
-- Verificar que el historial se conserva tras finalizar la publicación.
-- Verificar el aislamiento del historial entre dos usuarios distintos.
-- Cumplir A-05, A-06, D-05, D-06, R-05, R-07, R-08 y R-09.
+- Verificar la consulta con contactos de varias publicaciones y con publicaciones finalizadas.
+- Verificar el aislamiento entre dos usuarios y la ausencia de estados de correo no verificables.
+- Cumplir D-05, D-08, R-05, R-07, R-08 y R-09.
 
 ### US-023 — Reportar una publicación inapropiada
 

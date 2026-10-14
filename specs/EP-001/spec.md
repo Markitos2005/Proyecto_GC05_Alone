@@ -15,7 +15,7 @@ Como usuario de Lost&Found UEx, quiero crear y gestionar mi cuenta, identidad y 
 
 ## Historias de usuario
 
-### US-001 — Registro de cuenta con credenciales
+### US-001 — Registro de usuarios
 
 Como nuevo usuario, quiero registrarme con mi correo electrónico y contraseña, para disponer de una cuenta en la plataforma.
 
@@ -45,7 +45,7 @@ Como nuevo usuario, quiero registrarme con mi correo electrónico y contraseña,
 Como usuario registrado, quiero autenticarme con mi correo y contraseña, para acceder a las funciones del sistema.
 
 - **Prioridad:** Must
-- **Estimación:** 11 h-p
+- **Estimación:** 6 h-p
 - **Incertidumbre:** Baja
 - **Predecesoras:** US-001
 - **Plan inicial:** IT-01
@@ -64,12 +64,12 @@ Como usuario registrado, quiero autenticarme con mi correo y contraseña, para a
 - Verificar que las credenciales no aparecen en registros ni respuestas de la API.
 - Cumplir R-04, R-05, R-06, R-08 y R-09.
 
-### US-003 — Cierre de sesión seguro
+### US-003 — Cierre de sesión
 
-Como usuario autenticado, quiero cerrar mi sesión, para garantizar la seguridad de mi cuenta en terminales compartidos.
+Como usuario autenticado, quiero cerrar mi sesión, para garantizar la seguridad de mi cuenta y evitar el acceso de otras personas en el mismo dispositivo.
 
 - **Prioridad:** Must
-- **Estimación:** 7 h-p
+- **Estimación:** 3 h-p
 - **Incertidumbre:** Baja
 - **Predecesoras:** US-002
 - **Plan inicial:** IT-01
@@ -125,7 +125,7 @@ Como usuario registrado que ha olvidado su contraseña, quiero solicitar un enla
 Como usuario, quiero editar mis datos y teléfono de contacto, para que me localicen si reclamo o entrego un objeto.
 
 - **Prioridad:** Must
-- **Estimación:** 10 h-p
+- **Estimación:** 3 h-p
 - **Incertidumbre:** Baja
 - **Predecesoras:** US-002
 - **Plan inicial:** IT-01
@@ -178,11 +178,11 @@ Como usuario autenticado, quiero cambiar mi contraseña desde mi perfil, para ma
 
 ### US-005 — Inicio de sesión alternativo mediante OAuth
 
-Como usuario, quiero iniciar sesión mediante Google o GitHub, para acceder sin introducir credenciales locales.
+Como usuario, quiero iniciar sesión mediante una cuenta de Microsoft (preferiblemente asociada a la Universidad de Extremadura), para acceder sin introducir credenciales locales.
 
 - **Prioridad:** Could
 - **Estimación:** 9 h-p
-- **Incertidumbre:** Media
+- **Incertidumbre:** Alta
 - **Predecesoras:** US-002, US-004
 - **Plan inicial:** IT-02
 
@@ -209,7 +209,7 @@ Como usuario, quiero iniciar sesión mediante Google o GitHub, para acceder sin 
 | Objetivo | G-04 — Acceso controlado |
 | Alcance | S-01 — Gestión de cuenta y autenticación |
 | Indicador | M-05 — El 100 % de las pruebas definidas para autenticación y autorización producen el comportamiento esperado |
-| Historias | US-001, US-002, US-003, US-022, US-004, US-024 y US-005 |
+| Historias | US-001, US-002, US-003, US-004 y US-005 |
 | Iteraciones | IT-01 e IT-02 |
 | Roles | Usuario y Administrador |
 | Autenticación principal | Correo electrónico y contraseña |

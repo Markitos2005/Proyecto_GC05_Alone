@@ -12,7 +12,7 @@ Como usuario autenticado de Lost&Found UEx, quiero publicar y consultar solicitu
 - **Incertidumbre:** Media
 - **Predecesoras:** EP-001
 - **Plan inicial:** IT-03
-  
+
 ## Historias de usuario
 
 ### US-010 — Publicar una solicitud de búsqueda
@@ -64,7 +64,7 @@ Como conserje o usuario, quiero consultar las solicitudes de búsqueda activas, 
 
 ### US-012 — Buscar solicitudes por texto
 
-Como usuario, quiero buscar y filtrar las solicitudes de búsqueda, para localizar publicaciones relacionadas con el objeto que he encontrado o que estoy buscando.
+Como usuario o conserje, quiero buscar y filtrar las solicitudes de búsqueda, para localizar publicaciones relacionadas con el objeto que he encontrado o que estoy buscando.
 
 - **Prioridad:** Must
 - **Estimación:** 3 h-p
