@@ -75,3 +75,36 @@ Cualquier modificación deberá:
 * Indicar qué documentos o decisiones resultan afectados.
 
 Las excepciones deberán ser explícitas, justificadas, aprobadas y, cuando sea posible, temporales.
+
+---
+
+## 5. Team Charter y Organización
+
+### 5.1. Definición de la Empresa de Desarrollo
+* **Nombre de la empresa:** Grupo GC05
+* **Propósito:** Diseñar y construir soluciones de software robustas, seguras y centradas en el usuario, aplicando rigurosidad en la ingeniería de requisitos, trazabilidad continua y buenas prácticas ágiles para entregar productos viables, fiables y de alto impacto operativo.
+* **Servicios:** Desarrollo de Software
+* **Contexto:** Grupo de estudiantes de la Universidad de Extremadura. El proyecto estará condicionado por la necesidad de compatibilizar su desarrollo con otras actividades académicas. 
+
+### 5.2. Miembros y Responsabilidades
+| Integrante | Rol Principal | Responsabilidades |
+| :--- | :--- | :--- |
+| Luis Caballero | Product Owner | visión y valor, mantener y priorizar el Product
+Backlog, escribir historias con criterios de aceptación, gestionar 
+stakeholders, aceptar/rechazar incrementos, alinear roadmap y objetivos.  |
+| Samuel Gomes | Scrum Master | facilitar ceremonias, proteger el proceso y el 
+timeboxing, fomentar comunicación y feedback, mejorar el flujo (WIP, 
+cycle time), impulsar retrospectivas y acuerdos de trabajo. |
+| Ángel Parra | Tech Lead | arquitectura y estándares, decisiones técnicas 
+(ADRs), descomposición en tareas, revisión de PRs, control de deuda 
+técnica, mentoring y gestión de riesgos. |
+| Raúl Rosado | DevOps/QA | CI/CD, estrategia de pruebas (unitarias, 
+integración, e2e), gestión de entornos, release management, 
+observabilidad básica, runbooks y despliegues. |
+| Marcos Escribano | Developer | Diseño e implementación de código, desarrollo de pruebas unitarias y de integración, refactorización, estimación técnica de tareas, documentación de componentes y cumplimiento de la Definition of Done (DoD). |
+
+### 5.3. Acuerdos de Trabajo del Equipo (Working Agreements)
+* **Comunicación:** Canales oficiales (Discord/Teams/WhatsApp) y horario de respuesta.
+* **Toma de decisiones:** Por consenso en primera instancia; en desacuerdos, decisión fundamentada del rol responsable con registro en la Wiki.
+* **Compromiso horario:** Cumplimiento de la dedicación acordada y aviso previo en caso de ausencia imprevista.
+* **Gestión de tareas:** Uso de plataformas como Trello.
