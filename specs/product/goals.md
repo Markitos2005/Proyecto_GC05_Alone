@@ -1,212 +1,260 @@
+# Lost&Found UEx — Objetivos, alcance y trazabilidad
+
 ## 1. Objetivos
- 
-Los objetivos del proyecto concretan los resultados que Lost&Found UEx debe alcanzar durante el periodo de desarrollo. Estos objetivos deben ser medibles, alcanzables y estar directamente relacionados con la misión del producto.
- 
+
+Los objetivos concretan los resultados que Lost&Found UEx debe alcanzar durante el desarrollo. El sistema distingue entre la gestión de objetos encontrados por el personal de conserjería y la comunicación de pérdidas por parte de los usuarios.
+
 | ID | Objetivo | Resultado esperado |
 | --- | --- | --- |
-| G-01 | Registro y consulta de objetos | El usuario puede registrar un objeto perdido o encontrado y consultar los objetos disponibles mediante un recorrido sencillo y comprensible. |
-| G-02 | Contacto para la recuperación | El usuario puede contactar con el autor de un hallazgo para comunicar que busca ese objeto y acordar su recuperación fuera de la aplicación. |
-| G-03 | Trazabilidad y confianza | El sistema mantiene información clara sobre el estado de las publicaciones y de los contactos iniciados. |
-| G-04 | Acceso controlado | Los usuarios pueden crear una cuenta e identificarse mediante credenciales locales; opcionalmente podrán utilizar un proveedor OAuth externo, y las operaciones disponibles se adaptan a su rol dentro del sistema. |
-| G-05 | Producto revisable | Una persona que no haya participado en el desarrollo puede instalar, ejecutar y evaluar el producto siguiendo la documentación proporcionada. |
- 
+| G-01 | Gestión de objetos encontrados | Los Conserjes pueden registrar y gestionar objetos encontrados en la facultad que tienen asignada. |
+| G-02 | Búsqueda de objetos perdidos | Los Usuarios pueden describir un objeto perdido y consultar hallazgos coincidentes en la facultad o centro indicado. |
+| G-03 | Recuperación validada | Los Usuarios pueden solicitar la recuperación aportando información que permita demostrar la propiedad y los Conserjes pueden validar o rechazar la solicitud. |
+| G-04 | Avisos de pérdidas | Los Usuarios pueden publicar avisos de objetos perdidos con información de contacto, sin que estos avisos formen parte del flujo de hallazgos gestionado por Conserjería. |
+| G-05 | Acceso y administración controlados | El sistema diferencia los roles Usuario, Conserje y Administrador, y limita sus operaciones según la facultad y los permisos asignados. |
+| G-06 | Producto revisable | Una persona que no haya participado en el desarrollo puede instalar, ejecutar y evaluar el producto siguiendo la documentación proporcionada. |
+
 ## 2. Indicadores de éxito
- 
-Los indicadores permiten comprobar objetivamente si los objetivos definidos se han alcanzado.
- 
+
+Los indicadores se mantienen sencillos y se verifican mediante pruebas funcionales y una revisión final.
+
 | ID | Objetivo | Indicador | Meta |
 | --- | --- | --- | --- |
-| M-01 | G-01 | Usuarios que completan el registro de un objeto | Al menos 4 de 5 participantes completan el proceso sin ayuda y en menos de 5 minutos. |
-| M-02 | G-01 | Usuarios que encuentran un objeto mediante búsqueda | Al menos 4 de 5 participantes localizan correctamente un objeto concreto mediante los filtros disponibles. |
-| M-03 | G-02 | Usuarios que contactan sobre un hallazgo | Al menos 4 de 5 participantes completan correctamente un contacto sobre un hallazgo sin ayuda. |
-| M-04 | G-03 | Estados correctamente reflejados | El 100 % de las publicaciones utilizadas en las pruebas muestran correctamente su estado actual y su historial básico; los contactos registran únicamente su inicio, sin asumir que el correo haya sido enviado, recibido o leído. |
-| M-05 | G-04 | Acceso y autorización | El 100 % de las pruebas definidas para autenticación y autorización producen el comportamiento esperado. |
-| M-06 | G-05 | Instalación y ejecución | Una persona que no haya implementado el producto puede seguir la documentación y ejecutar el sistema sin intervenciones no documentadas. |
-| M-07 | Todos | Defectos bloqueantes | No existe ningún defecto bloqueante abierto durante la revisión final. |
- 
+| M-01 | G-01 | Publicación de hallazgos | Un Conserje puede registrar y gestionar un objeto encontrado asociado a su facultad. |
+| M-02 | G-02 | Búsqueda por facultad o centro | Un Usuario puede describir una pérdida y consultar los hallazgos coincidentes del centro indicado. |
+| M-03 | G-03 | Solicitud de recuperación | Una solicitud válida queda Pendiente, puede ser revisada por el Conserje correspondiente y genera un aviso tras su validación. |
+| M-04 | G-04 | Feed de pérdidas | Un Usuario puede publicar y consultar avisos de pérdidas sin mezclarlos con los hallazgos de Conserjería. |
+| M-05 | G-05 | Roles y alcance | Usuario, Conserje y Administrador solo pueden ejecutar las operaciones permitidas para su rol y ámbito. |
+| M-06 | G-06 | Producto ejecutable | Una persona externa puede instalar y ejecutar el producto siguiendo la documentación. |
+| M-07 | Todos | Revisión final | No hay defectos bloqueantes abiertos al finalizar la revisión. |
+
 ## 3. Stakeholders
- 
+
 | ID | Stakeholder | Interés | Influencia | Estrategia |
 | --- | --- | --- | --- | --- |
-| SH-01 | Estudiantes y personal UEx (Usuario) | Recuperar objetos rápido y con confianza | Media | Pruebas de usabilidad M-01 a M-03 con 5 participantes |
-| SH-02 | Administrador de la aplicación | Mantener categorías, ubicaciones y configuración sin tocar código | Baja | Mantener informado; alcance S-06 |
-| SH-03 | Profesorado de GPS | Línea base realista, trazabilidad y calidad | Muy alta | Gestionar de cerca: hitos H1–H4 y entregas |
-| SH-04 | Equipo de desarrollo | Alcance estable y bien especificado | Alta | Refinamiento semanal del backlog |
-| SH-05 | Revisor externo (M-06) | Instalar y evaluar sin ayuda | Media | Documentación de instalación y revisión en la iteración 6 |
-| SH-06 | Protección de datos UEx | Ningún dato personal real | Media | Cumplir R-03 y A-07 con datos sintéticos |
- 
-## 4. Alcance incluido
- 
-El proyecto incluye las funcionalidades necesarias para proporcionar un recorrido completo de registro, búsqueda y recuperación de objetos perdidos.
- 
+| SH-01 | Estudiantes y personal UEx (Usuario) | Comunicar pérdidas y recuperar objetos de forma segura | Media | Validar los flujos de búsqueda, solicitud y avisos de pérdida |
+| SH-02 | Personal de conserjería (Conserje) | Registrar hallazgos y validar solicitudes de recuperación | Alta | Validar los flujos de gestión por facultad |
+| SH-03 | Administrador de la aplicación | Mantener usuarios, roles y configuración común | Alta | Mantener informado y validar las operaciones administrativas |
+| SH-04 | Profesorado de GPS | Trazabilidad, alcance y calidad del producto | Muy alta | Revisar hitos, entregas y evidencias |
+| SH-05 | Equipo de desarrollo | Alcance estable y requisitos verificables | Alta | Refinar el backlog y mantener la coherencia de las specs |
+| SH-06 | Protección de datos UEx | Uso controlado de datos personales | Media | Utilizar datos ficticios o sintéticos durante desarrollo y demostración |
+
+## 4. Roles y permisos
+
+El sistema tendrá exactamente tres roles:
+
+| Rol | Ámbito | Permisos principales |
+| --- | --- | --- |
+| Usuario | Cuenta propia | Buscar hallazgos, solicitar recuperaciones, publicar avisos de pérdidas y consultar su historial |
+| Conserje | Una facultad asignada | Publicar y gestionar hallazgos de su facultad, revisar solicitudes de recuperación asociadas y emitir avisos de validación |
+| Administrador | Sistema completo | Gestionar cuentas, roles, facultades, centros, categorías, asignaciones de Conserjes y auditoría |
+
+Reglas generales:
+
+- Una cuenta nueva recibe el rol Usuario.
+- Un Administrador asigna cada Conserje a una facultad concreta.
+- Un Conserje solo puede crear, editar, retirar o validar información vinculada a su facultad asignada.
+- Un Usuario no puede publicar objetos encontrados ni validar solicitudes de recuperación.
+- Un Administrador no sustituye al Conserje en la validación ordinaria de solicitudes, salvo que se defina expresamente una operación de soporte.
+
+## 5. Alcance incluido
+
 ### S-01 — Gestión de cuenta y autenticación
- 
+
 - Registro de cuentas mediante correo electrónico y contraseña.
-- Inicio de sesión mediante credenciales locales.
-- Cierre de sesión seguro e invalidación de la sesión.
-- Creación de un perfil con rol *Usuario* por defecto.
-- Edición y consulta del perfil propio, incluida la información de contacto.
-- Inicio de sesión alternativo mediante OAuth con un proveedor externo, como capacidad opcional.
-- Identificación del usuario durante sus operaciones.
-- Gestión de roles básicos: Usuario y Administrador.
-### S-02 — Feed de hallazgos
- 
-Los usuarios autenticados podrán:
- 
-- Registrar un objeto encontrado.
-- Introducir información pública y rasgos identificativos privados.
-- Indicar una ubicación geográfica y fecha del hallazgo.
-- Adjuntar imágenes del objeto encontrado.
-- Indicar, cuando proceda, un punto de entrega.
-- Consultar el feed y el detalle público de los hallazgos activos.
-- Explorar el feed mediante paginación.
-- Filtrar por fechas, categorías y radio de proximidad geográfica.
-- Editar, marcar como devuelto o retirar un hallazgo propio.
-### S-03 — Feed de solicitudes de búsqueda
+- Inicio y cierre de sesión.
+- Recuperación y cambio de contraseña.
+- Consulta y edición del perfil propio.
+- Gestión de los roles Usuario, Conserje y Administrador.
+- Inicio de sesión OAuth como capacidad opcional si se mantiene en el alcance técnico.
 
-El sistema permitirá:
+### S-02 — Gestión de hallazgos por Conserjería
 
-- Publicar una solicitud de búsqueda sobre un objeto perdido.
-- Consultar solicitudes de búsqueda activas.
-- Buscar por texto.
-- Filtrar por categoría.
-- Filtrar por ubicación.
-- Filtrar por estado.
-- Consultar la información pública asociada a una solicitud. La información pública incluye categoría, ubicación aproximada, fecha y descripción; la información privada no se publica en el feed.
-- Editar y cerrar una solicitud propia.
+Los Conserjes podrán:
 
-### S-04 — Contacto sobre un hallazgo
+- Publicar objetos encontrados únicamente en su facultad asignada.
+- Registrar categoría, descripción, fecha, centro o punto de custodia e imágenes cuando proceda.
+- Añadir rasgos identificativos no públicos para facilitar la validación de una recuperación.
+- Consultar, editar y retirar sus hallazgos.
+- Marcar un hallazgo como Devuelto cuando se complete la recuperación.
 
-Los usuarios autenticados podrán:
+Los Usuarios podrán consultar hallazgos activos, pero no crear ni modificar publicaciones de hallazgos.
 
-- Contactar con el autor de un hallazgo activo mediante un formulario.
-- Proporcionar información que permita identificar el objeto buscado.
-- Abrir un mensaje de correo preconfigurado mediante un enlace `mailto:`.
-- Elegir qué información de contacto del perfil se incluye en los nuevos mensajes.
-- Mantener Reply-To como una posible mejora si su viabilidad técnica se confirma.
+### S-03 — Búsqueda guiada de objetos perdidos
 
-### S-05 — Cierre y trazabilidad de publicaciones
+Los Usuarios podrán:
 
-Los usuarios podrán:
+- Indicar la categoría y la descripción básica del objeto perdido.
+- Seleccionar la facultad o el centro donde se produjo la pérdida.
+- Consultar un listado de hallazgos coincidentes en el ámbito indicado.
+- Consultar el detalle público de los hallazgos sin acceder a los rasgos privados del objeto.
+- Iniciar una solicitud de recuperación desde un hallazgo compatible.
 
-- Cerrar sus propias publicaciones cuando el caso ya no esté activo.
-- Consultar el estado básico y el historial de sus publicaciones y contactos.
-- La aplicación no certificará la propiedad ni gestionará la custodia o la entrega física.
-### S-06 — Gestión administrativa
- 
-Los usuarios con rol Administrador podrán:
- 
-- Gestionar las categorías disponibles.
-- Gestionar las ubicaciones y puntos de entrega utilizados por el sistema.
-- Consultar usuarios y gestionar su estado y rol de Administrador.
+La búsqueda de hallazgos se basa en los datos introducidos por el Usuario y no crea automáticamente un aviso de pérdida.
+
+### S-04 — Solicitud y validación de recuperación
+
+Los Usuarios podrán:
+
+- Solicitar la recuperación de un hallazgo desde su detalle.
+- Aportar información adicional que permita demostrar la propiedad del objeto.
+- Consultar el estado de sus solicitudes.
+- Recibir un aviso cuando el Conserje valide o rechace la solicitud.
+
+Los Conserjes podrán:
+
+- Consultar las solicitudes Pendientes asociadas a su facultad.
+- Revisar la información aportada por el Usuario.
+- Validar o rechazar la solicitud indicando un motivo cuando corresponda.
+- Emitir un aviso al Usuario tras la decisión.
+
+La aplicación registra la decisión, pero no certifica jurídicamente la propiedad ni gestiona por sí misma la entrega física.
+
+### S-05 — Feed independiente de pérdidas
+
+Los Usuarios podrán:
+
+- Publicar avisos de objetos perdidos.
+- Incluir descripción, categoría, facultad o centro, fecha y datos de contacto adicionales.
+- Consultar, editar y cerrar sus propios avisos.
+- Consultar los avisos publicados por otros Usuarios si están dentro del alcance público.
+
+Los avisos de pérdidas:
+
+- No son hallazgos registrados por Conserjería.
+- No se utilizan como fuente automática de coincidencias con hallazgos.
+- No generan solicitudes de recuperación ni validaciones de Conserjería por sí mismos.
+- Mantienen su propio estado e historial.
+
+### S-06 — Administración
+
+Los Administradores podrán:
+
+- Gestionar cuentas y estados de usuario.
+- Conceder y revocar los roles Conserje y Administrador respetando la protección del último Administrador activo.
+- Crear y mantener facultades, centros, categorías y puntos de custodia.
+- Asignar cada Conserje a una facultad.
 - Consultar la auditoría de cambios administrativos.
-- Configurar los parámetros comunes de los mensajes de contacto.
-- Consultar la información necesaria para mantener el funcionamiento de la aplicación.
-### S-07 — Datos de demostración
- 
-El sistema incluirá un conjunto controlado de objetos, usuarios y operaciones ficticias que permita demostrar y evaluar los flujos principales del producto.
- 
-### Estados del sistema
- 
-| Elemento | Estados |
+
+### S-07 — Producto revisable
+
+El producto incluirá:
+
+- Datos de demostración ficticios de los tres roles.
+- Facultades, centros, categorías, hallazgos, avisos de pérdidas y solicitudes en estados representativos.
+- Documentación de instalación y ejecución.
+- Pruebas de los flujos principales y de los permisos por rol.
+
+## 6. Estados del sistema
+
+| Elemento | Estados y transiciones |
 | --- | --- |
-| Hallazgo | Activo → Devuelto / Retirado |
-| Solicitud de búsqueda | Activa → Cerrada |
-| Contacto sobre un hallazgo | Iniciado |
- 
-La entrega física y cualquier acuerdo sobre la recuperación se realizan fuera de la aplicación. Cada cambio de estado gestionado por el sistema genera un evento básico de historial con fecha, usuario y motivo cuando corresponda.
+| Hallazgo de Conserjería | `Activo → Devuelto` o `Activo → Retirado` |
+| Solicitud de recuperación | `Pendiente → Validada` o `Pendiente → Rechazada` |
+| Aviso de pérdida | `Activo → Cerrado` |
 
-## Plan de ejecución en seis iteraciones
+Reglas de transición:
 
-El desarrollo se organizará en seis iteraciones consecutivas. Cada iteración tendrá un objetivo principal y cerrará con una revisión del incremento obtenido.
+- Solo un Conserje asignado a la facultad del hallazgo puede editarlo, retirarlo o marcarlo como Devuelto.
+- Solo un Conserje asignado a la facultad del hallazgo puede validar o rechazar su solicitud de recuperación.
+- Una solicitud `Validada` o `Rechazada` no vuelve a `Pendiente`; para reintentar debe crearse una nueva solicitud si el producto lo permite.
+- Un Usuario solo puede editar o cerrar sus propios avisos de pérdida.
+- Los estados finales no aparecen en los listados activos, pero conservan la información e historial necesarios.
+- La notificación se registra como `Emitida` cuando el sistema genera el aviso; no implica que el Usuario lo haya leído.
+- Cada transición registra fecha, actor, motivo cuando corresponda y ámbito territorial afectado.
+
+La entrega física se realiza según las instrucciones del Conserje y las normas de la facultad. El sistema registra la decisión de recuperación, pero no certifica por sí mismo la entrega física.
+
+## 7. Plan de ejecución en seis iteraciones
 
 | Iteración | Objetivo principal | Alcance |
 | --- | --- | --- |
-| IT-01 | Gestión de cuenta, identidad y perfil | S-01; EP-001 (US-001, US-002, US-003 y US-004) |
-| IT-02 | Autenticación alternativa y hallazgos | S-01, S-02; EP-001 (US-005), EP-002 |
-| IT-03 | Publicación y consulta de solicitudes | S-03; EP-003 |
-| IT-04 | Contacto y cierre de publicaciones | S-04, S-05; EP-004 |
-| IT-05 | Administración | S-06; EP-005 |
-| IT-06 | Calidad, integración y revisión final | S-07, R-08, R-09; actividades transversales |
+| IT-01 | Cuenta, identidad y roles base | S-01; EP-001 |
+| IT-02 | Publicación de hallazgos por Conserjería | S-02; parte de EP-002 |
+| IT-03 | Búsqueda guiada y feed de pérdidas | S-03 y S-05; EP-003 y parte de EP-002 |
+| IT-04 | Solicitudes y validación de recuperación | S-04; EP-004 |
+| IT-05 | Administración y asignaciones | S-06; EP-005 |
+| IT-06 | Integración, demostración y revisión final | S-07, pruebas globales, documentación y validación transversal |
 
-Las historias no se consideran completas hasta cumplir la Definition of Done y las verificaciones indicadas en su épica. La iteración 6 se dedica a la integración, la documentación, los datos de demostración y la validación final del producto completo como actividades transversales, no como una épica adicional.
- 
-## 5. Supuestos
- 
-El proyecto se desarrolla bajo los siguientes supuestos:
- 
-- A-01: Los usuarios dispondrán de conexión a Internet para utilizar la aplicación.
-- A-02: Si se implementa la autenticación OAuth opcional, el proveedor externo utilizado estará disponible durante las pruebas.
-- A-03: Los usuarios proporcionarán información suficiente para describir los objetos registrados.
-- A-04: Las ubicaciones y puntos de entrega utilizados por el sistema serán previamente conocidos y estarán representados mediante un conjunto controlado de datos.
-- A-05: Las operaciones de entrega y devolución física de los objetos se realizarán fuera del sistema.
-- A-06: El sistema se utilizará como herramienta de gestión y coordinación y no como mecanismo oficial de custodia de objetos.
-- A-07: Los datos empleados durante el desarrollo, las pruebas y la demostración serán ficticios o sintéticos.
-- A-08: La autenticación local será suficiente para demostrar el proceso principal de identificación de usuarios; OAuth será una integración opcional.
-- A-09: Quien encuentra un objeto lo deposita en el punto de entrega indicado al registrarlo.
-## 6. Restricciones
- 
-El proyecto deberá respetar las siguientes condiciones:
- 
-- R-01: El desarrollo deberá completarse dentro del periodo de ejecución establecido para el proyecto.
+### Distribución de historias por iteración
+
+La capacidad efectiva disponible es de 40 h-p por semana. Las historias se asignan respetando sus predecesoras y procurando equilibrar la carga. IT-06 incorpora las historias de trazabilidad, reportes y auditoría que pueden completarse después de los flujos funcionales, además de reservar capacidad para integración, documentación, datos de demostración, pruebas globales y revisión final.
+
+| Iteración | Historias | Carga estimada |
+| --- | --- | ---: |
+| IT-01 | US-001, US-002, US-003, US-005 | 25 h-p |
+| IT-02 | US-004, US-006, US-007, US-009 | 35 h-p |
+| IT-03 | US-010, US-011, US-013, US-014 | 31 h-p |
+| IT-04 | US-015, US-016, US-017, US-018, US-019, US-023 | 35 h-p |
+| IT-05 | US-012, US-020, US-024, US-025 | 34 h-p |
+| IT-06 | US-021, US-022, US-026 | 18 h-p |
+
+La carga máxima es de 35 h-p en IT-02 e IT-04, por debajo de la capacidad efectiva de 40 h-p por iteración. La suma de las estimaciones visibles de las historias es 178 h-p; las estimaciones agregadas de las épicas pueden incluir trabajo técnico transversal no desglosado en historias.
+
+Las historias no se consideran completas hasta cumplir la Definition of Done, sus criterios de aceptación y las restricciones aplicables.
+
+## 8. Supuestos
+
+- A-01: Los usuarios y Conserjes dispondrán de conexión a Internet.
+- A-02: Cada Conserje tendrá una facultad asignada por un Administrador antes de publicar o validar operaciones.
+- A-03: Las facultades y centros utilizados durante las pruebas estarán previamente definidos.
+- A-04: Los Conserjes podrán consultar la información necesaria para gestionar los objetos depositados en su facultad.
+- A-05: La entrega física se realizará fuera de la aplicación siguiendo las instrucciones del Conserje.
+- A-06: Los datos de desarrollo, pruebas y demostración serán ficticios o sintéticos.
+- A-07: Los avisos de pérdidas son un canal independiente de los hallazgos de Conserjería.
+
+## 9. Restricciones
+
+- R-01: El proyecto deberá completarse dentro del periodo establecido.
 - R-02: El producto deberá mantenerse dentro del alcance definido en este documento.
-- R-03: No se utilizarán datos personales reales durante el desarrollo, las pruebas ni la demostración.
-- R-04: Las entradas proporcionadas por los usuarios deberán validarse antes de ser procesadas.
-- R-05: Las operaciones deberán respetar los permisos asociados al rol del usuario.
-- R-06: Las contraseñas locales deberán almacenarse únicamente mediante un mecanismo de hash seguro; las credenciales de proveedores OAuth no serán almacenadas por la aplicación.
-- R-07: El sistema deberá mantener la trazabilidad básica del estado de las publicaciones y de los contactos iniciados.
-- R-08: La aplicación deberá proporcionar mensajes comprensibles ante errores y operaciones no permitidas.
-- R-09: Las funcionalidades principales deberán poder ser verificadas mediante pruebas.
-- R-10: El proyecto deberá respetar las tecnologías y convenciones aprobadas para la asignatura.
-- R-11: Los rasgos identificativos de un hallazgo no serán visibles en el feed público ni en las respuestas públicas de la API; solo estarán disponibles para el autor del hallazgo en las operaciones autorizadas.
-## 7. Trazabilidad
- 
-La trazabilidad del proyecto seguirá la siguiente cadena:
- 
+- R-03: No se utilizarán datos personales reales durante desarrollo, pruebas ni demostración.
+- R-04: Todas las entradas deberán validarse antes de procesarse.
+- R-05: Las operaciones deberán respetar los permisos del rol y la facultad asignada.
+- R-06: Las contraseñas locales se almacenarán únicamente mediante un mecanismo de hash seguro.
+- R-07: La información privada de hallazgos y solicitudes no será visible en listados públicos.
+- R-08: Las solicitudes de recuperación solo podrán ser revisadas por Conserjes de la facultad correspondiente.
+- R-09: La aplicación mostrará mensajes comprensibles ante errores y operaciones no permitidas.
+- R-10: Las funcionalidades principales deberán poder verificarse mediante pruebas.
+- R-11: Los cambios de estado y decisiones de recuperación deberán conservar trazabilidad.
+- R-12: El feed de pérdidas no podrá modificar ni crear automáticamente hallazgos o solicitudes de recuperación.
+
+## 10. Trazabilidad
+
+La trazabilidad seguirá la cadena:
+
 Misión → objetivos → épicas → historias de usuario → tareas → código y pruebas → evidencias
- 
-Cada épica y funcionalidad deberá contribuir al menos a uno de los objetivos definidos en este documento.
- 
+
 | Épica | Nombre | Alcance | Objetivos | Indicadores |
 | --- | --- | --- | --- | --- |
-| EP-01 | Arquitectura base, identidad y control de acceso | S-01 | G-04, G-05 | M-05, M-06 |
-| EP-02 | Feed de hallazgos | S-02 | G-01 | M-01 |
-| EP-03 | Feed de solicitudes | S-03 | G-01 | M-02 |
-| EP-04 | Contacto y trazabilidad | S-04, S-05, R-07 | G-02, G-03 | M-03, M-04 |
-| EP-05 | Administración | S-06 | G-04 | M-05 |
- 
-Una funcionalidad que no contribuya a ningún objetivo se considerará fuera del alcance hasta que se apruebe explícitamente un cambio en goals.md.
+| EP-01 | Gestión de cuenta, identidad y perfil | S-01 | G-05 | M-05 |
+| EP-02 | Gestión y exploración de hallazgos | S-02 | G-01 | M-01 |
+| EP-03 | Búsqueda y avisos de pérdidas | S-03, S-05 | G-02, G-04 | M-02, M-04 |
+| EP-04 | Solicitudes y validación de recuperación | S-04 | G-03 | M-03 |
+| EP-05 | Administración y asignaciones | S-06 | G-05 | M-05 |
 
-S-07, R-08 y R-09 se verifican transversalmente durante IT-06. La preparación de datos de demostración, la documentación, las pruebas globales y la revisión externa son actividades de cierre del proyecto y no constituyen una épica funcional independiente.
- 
-## 8. Gestión de cambios
- 
-Cualquier modificación de un objetivo, indicador, alcance, exclusión, supuesto o restricción deberá:
- 
+S-07 y las condiciones de calidad, documentación, pruebas e instalación se verifican transversalmente durante IT-06 y no constituyen una épica funcional independiente.
+
+## 11. Gestión de cambios
+
+Cualquier modificación de un objetivo, indicador, alcance, rol, estado, supuesto o restricción deberá:
+
 - Ser revisada por el equipo.
-- Ser justificada respecto a las necesidades del producto.
+- Justificarse respecto a las necesidades del producto.
 - Ser aprobada explícitamente por el Product Owner.
 - Registrar la decisión y su fecha.
-- Evaluar su impacto sobre el plazo, la capacidad y el coste.
-- Revisar las especificaciones, el backlog, la planificación y las tareas afectadas.
-- Actualizar las referencias afectadas para mantener la trazabilidad.
-## 9. Registro de decisiones y cambios
- 
+- Evaluar su impacto sobre plazo, capacidad, coste y trazabilidad.
+- Actualizar las especificaciones y referencias afectadas.
+
+## 12. Registro de decisiones y cambios
+
 | ID | Fecha | Decisión | Apartados afectados |
 | --- | --- | --- | --- |
-| D-01 | 30/09/2026 | Los rasgos identificativos de los hallazgos no son públicos y solo puede consultarlos el autor del hallazgo en operaciones autorizadas. | S-02, S-03, S-04, R-11 |
-| D-02 | 30/09/2026 | Los hallazgos y las solicitudes de búsqueda son publicaciones independientes y no existe emparejamiento automático. | S-02, S-03 |
-| D-03 | 30/09/2026 | La recuperación y la entrega física se acuerdan entre usuarios fuera de la aplicación. | S-04, S-05, A-05, A-06 |
-| D-04 | 30/09/2026 | Todo usuario nuevo entra como Usuario; el Administrador mantiene la configuración general y no interviene en cada contacto. | S-01, S-06 |
-| D-05 | 30/09/2026 | Inicialmente, el contacto sobre un hallazgo se realizará mediante un enlace `mailto:` y no mediante chat interno. Se podrá valorar una integración con Reply-To si resulta viable dentro del alcance. | S-04 |
-| D-06 | 30/09/2026 | El autor puede editar y cerrar o retirar su publicación; no existe borrado físico. En los hallazgos, el cierre funcional puede representarse como Devuelto o Retirado. | S-02, S-03, S-05 |
-| D-07 | 30/09/2026 | La aplicación no certifica la propiedad ni gestiona la custodia o la entrega física. | S-04, S-05, A-05, A-06 |
-| D-08 | 30/09/2026 | Los cambios de estado de publicaciones y contactos generan un historial básico. | S-05, M-04, Estados |
-| C-01 | 30/09/2026 | Se añade la sección de stakeholders y la tabla de épicas a la trazabilidad. | 3, 8 |
-| D-09 | 12/10/2026 | Los requisitos de producto revisable se mantienen como condiciones transversales de revisión y no como una épica funcional independiente. | 7, S-07, R-08, R-09, G-05, M-06, M-07 |
-| D-10 | 14/10/2026 | Se remodela el producto como dos feeds relacionados: hallazgos y solicitudes de búsqueda. Se elimina el rol Responsable y el contacto se realiza mediante correo electrónico; la recuperación física se negocia fuera de la aplicación. | S-01, S-02, S-03, S-04, S-05, S-06, R-07, R-11, G-02, G-03, M-03, M-04 |
-| D-11 | 14/10/2026 | Se fija una planificación de exactamente seis iteraciones: una iteración para cada épica funcional y una última iteración transversal para integración, datos de demostración, documentación y revisión final. | Plan de ejecución, S-07, R-08, R-09, G-05, M-06, M-07 |
-| D-12 | 14/10/2026 | Las actividades de datos de demostración, documentación, pruebas globales y revisión externa se mantienen como trabajo transversal de cierre en IT-06 y no como una épica funcional independiente. | IT-06, S-07, R-08, R-09, G-05, M-06, M-07 |
-| D-13 | 14/10/2026 | EP-001 se redefine para incluir la arquitectura base, el contrato OpenAPI, la persistencia, el pipeline CI/CD, el perfil de usuario, la revocación de tokens y el control de acceso por roles. Las historias posteriores se renumeran para conservar identificadores únicos. | EP-001, S-01, G-04, G-05, M-05, M-06 |
-| D-14 | 14/10/2026 | EP-002 se redefine para incluir imágenes, categorías, geolocalización, paginación y filtros avanzados. Los hallazgos dejan de usar el estado genérico Cerrado y pasan de Activo a Devuelto o Retirado según el resultado de la gestión del autor. | EP-002, EP-004, S-02, S-05, G-01, G-02, M-01, M-02 |
-| D-15 | 14/10/2026 | EP-001 adopta el registro e inicio de sesión con credenciales locales como mecanismo principal. El acceso OAuth con Google o GitHub queda como capacidad opcional de prioridad Could, y el perfil incorpora el teléfono de contacto. | EP-001, S-01, G-04, M-05, A-02, A-08, R-06 |
+| D-01 | 30/09/2026 | Los rasgos identificativos de los hallazgos no son públicos y solo están disponibles en operaciones autorizadas. | S-02, S-03, S-04, R-07 |
+| D-02 | 30/09/2026 | Los avisos de pérdidas y los hallazgos de Conserjería son canales diferenciados. | S-02, S-03, S-05, A-07 |
+| D-03 | 14/10/2026 | Se definen tres roles: Usuario, Conserje y Administrador. | S-01, S-06, G-05 |
+| D-04 | 14/10/2026 | Cada Conserje queda asignado a una facultad y solo puede gestionar hallazgos y solicitudes de ese ámbito. | S-02, S-04, S-06, R-05, R-08 |
+| D-05 | 14/10/2026 | Los Usuarios no publican hallazgos; los hallazgos solo pueden ser publicados por Conserjes. | S-02, G-01 |
+| D-06 | 14/10/2026 | La búsqueda de objetos perdidos se realiza mediante un formulario de categoría, descripción y facultad o centro, mostrando coincidencias de hallazgos. | S-03, G-02 |
+| D-07 | 14/10/2026 | La recuperación se solicita mediante un formulario con información justificativa, queda Pendiente y requiere validación de un Conserje antes de emitir el aviso al Usuario. | S-04, G-03 |
+| D-08 | 14/10/2026 | Se elimina el contacto externo como mecanismo de recuperación y se sustituye por solicitudes gestionadas dentro de la aplicación. | S-04, R-08 |
+| D-09 | 14/10/2026 | Los avisos de pérdidas permanecen desacoplados de los hallazgos de Conserjería y no generan coincidencias ni solicitudes automáticamente. | S-05, R-12 |
+| D-10 | 14/10/2026 | Se mantiene una planificación de seis iteraciones; IT-06 queda reservada para integración, demostración, documentación y revisión final transversal. | Plan de ejecución, S-07, G-06 |

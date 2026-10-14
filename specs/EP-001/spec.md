@@ -20,7 +20,7 @@ Como usuario de Lost&Found UEx, quiero crear y gestionar mi cuenta, identidad y 
 Como nuevo usuario, quiero registrarme con mi correo electrónico y contraseña, para disponer de una cuenta en la plataforma.
 
 - **Prioridad:** Must
-- **Estimación:** 11 h-p
+- **Estimación:** 12 h-p
 - **Incertidumbre:** Baja
 - **Predecesoras:** —
 - **Plan inicial:** IT-01
@@ -87,7 +87,7 @@ Como usuario autenticado, quiero cerrar mi sesión, para garantizar la seguridad
 - Verificar acceso antes del cierre, acceso posterior con la sesión cerrada y nuevo inicio de sesión.
 - Cumplir R-05, R-08 y R-09.
 
-### US-022 — Recuperar la contraseña olvidada
+### US-004 — Recuperar la contraseña olvidada
 
 Como usuario registrado que ha olvidado su contraseña, quiero solicitar un enlace de restablecimiento a mi correo, para recuperar el acceso a mi cuenta sin intervención de un Administrador.
 
@@ -99,17 +99,16 @@ Como usuario registrado que ha olvidado su contraseña, quiero solicitar un enla
 
 #### Criterios de aceptación
 
-- **US-022-AC-01:** El usuario puede solicitar la recuperación desde la pantalla de inicio de sesión indicando su correo electrónico.
-- **US-022-AC-02:** El sistema muestra el mismo mensaje de confirmación tanto si el correo está asociado a una cuenta como si no, sin revelar su existencia.
-- **US-022-AC-03:** Si el correo pertenece a una cuenta activa con credenciales locales, el sistema envía un enlace de restablecimiento de un solo uso y con caducidad limitada.
-- **US-022-AC-04:** El sistema no envía enlaces de restablecimiento a cuentas desactivadas.
-- **US-022-AC-05:** Una nueva solicitud invalida los enlaces anteriores que no se hayan utilizado.
-- **US-022-AC-06:** El usuario puede establecer una nueva contraseña desde un enlace válido, cumpliendo las mismas reglas de fortaleza que en el registro.
-- **US-022-AC-07:** El sistema rechaza enlaces caducados, ya utilizados o manipulados con un mensaje comprensible.
-- **US-022-AC-08:** Al restablecer la contraseña, el enlace queda invalidado y se cierran todas las sesiones activas de la cuenta.
-- **US-022-AC-09:** La nueva contraseña se almacena protegida mediante un mecanismo de hash seguro y nunca se envía por correo.
-- **US-022-AC-10:** El sistema limita el número de solicitudes de recuperación para un mismo correo en un periodo de tiempo.
-- **US-022-AC-11:** El sistema registra la solicitud y el restablecimiento con la fecha y la cuenta afectada, sin almacenar la contraseña ni el enlace en claro.
+- **US-004-AC-01:** El usuario puede solicitar la recuperación desde la pantalla de inicio de sesión indicando su correo electrónico.
+- **US-004-AC-02:** El sistema muestra el mismo mensaje de confirmación tanto si el correo está asociado a una cuenta como si no, sin revelar su existencia.
+- **US-004-AC-03:** Si el correo pertenece a una cuenta activa con credenciales locales, el sistema envía un enlace de restablecimiento de un solo uso y con caducidad limitada.
+- **US-004-AC-04:** El sistema no envía enlaces de restablecimiento a cuentas desactivadas.
+- **US-004-AC-05:** Una nueva solicitud invalida los enlaces anteriores que no se hayan utilizado.
+- **US-004-AC-06:** El usuario puede establecer una nueva contraseña desde un enlace válido, cumpliendo las mismas reglas de fortaleza que en el registro.
+- **US-004-AC-07:** El sistema rechaza enlaces caducados, ya utilizados o manipulados con un mensaje comprensible.
+- **US-004-AC-08:** Al restablecer la contraseña, el enlace queda invalidado y se cierran todas las sesiones activas de la cuenta.
+- **US-004-AC-09:** La nueva contraseña se almacena protegida mediante un mecanismo de hash seguro y nunca se envía por correo.
+- **US-004-AC-10:** El sistema limita el número de solicitudes de recuperación para un mismo correo en un periodo de tiempo.
 
 #### Verificación y restricciones
 
@@ -120,24 +119,24 @@ Como usuario registrado que ha olvidado su contraseña, quiero solicitar un enla
 - Utilizar únicamente datos ficticios o sintéticos y un servidor de correo de pruebas.
 - Cumplir R-03, R-04, R-05, R-06, R-07, R-08 y R-09.
 
-### US-004 — Gestión de perfil e información de contacto
+### US-005 — Gestión de perfil e información de contacto
 
-Como usuario, quiero editar mis datos y teléfono de contacto, para que me localicen si reclamo o entrego un objeto.
+Como usuario autenticado, quiero editar mis datos y teléfono de contacto, para que me localicen si reclamo un objeto.
 
 - **Prioridad:** Must
-- **Estimación:** 3 h-p
+- **Estimación:** 4 h-p
 - **Incertidumbre:** Baja
 - **Predecesoras:** US-002
 - **Plan inicial:** IT-01
 
 #### Criterios de aceptación
 
-- **US-004-AC-01:** El usuario autenticado puede consultar su perfil y editar los campos permitidos.
-- **US-004-AC-02:** El usuario puede añadir, modificar o eliminar su teléfono de contacto conforme a las reglas del sistema.
-- **US-004-AC-03:** El sistema valida el formato y los límites de los datos antes de guardarlos.
-- **US-004-AC-04:** Un usuario solo puede consultar y editar su propio perfil.
-- **US-004-AC-05:** El cambio de perfil conserva la identidad, rol y publicaciones asociadas a la cuenta.
-- **US-004-AC-06:** El sistema informa de forma comprensible ante datos inválidos o una operación no autorizada.
+- **US-005-AC-01:** El usuario autenticado puede consultar su perfil y editar los campos permitidos.
+- **US-005-AC-02:** El usuario puede añadir, modificar o eliminar su teléfono de contacto conforme a las reglas del sistema.
+- **US-005-AC-03:** El sistema valida el formato y los límites de los datos antes de guardarlos.
+- **US-005-AC-04:** Un usuario solo puede consultar y editar su propio perfil.
+- **US-005-AC-05:** El cambio de perfil conserva la identidad, rol y publicaciones asociadas a la cuenta.
+- **US-005-AC-06:** El sistema informa de forma comprensible ante datos inválidos o una operación no autorizada.
 
 #### Verificación y restricciones
 
@@ -145,7 +144,7 @@ Como usuario, quiero editar mis datos y teléfono de contacto, para que me local
 - Verificar que el teléfono solo se muestra en las operaciones y vistas autorizadas.
 - Cumplir R-03, R-04, R-05, R-08, R-09 y R-11.
 
-### US-024 — Cambiar la contraseña desde el perfil
+### US-006 — Cambiar la contraseña desde el perfil
 
 Como usuario autenticado, quiero cambiar mi contraseña desde mi perfil, para mantener la seguridad de mi cuenta cuando sospeche que ha podido verse comprometida o quiera renovarla.
 
@@ -157,16 +156,16 @@ Como usuario autenticado, quiero cambiar mi contraseña desde mi perfil, para ma
 
 #### Criterios de aceptación
 
-- **US-024-AC-01:** El usuario autenticado puede iniciar el cambio de contraseña desde su perfil.
-- **US-024-AC-02:** El sistema exige la contraseña actual y la nueva contraseña introducida dos veces.
-- **US-024-AC-03:** El sistema rechaza el cambio si la contraseña actual es incorrecta, si las dos nuevas no coinciden o si la nueva es igual a la actual.
-- **US-024-AC-04:** La nueva contraseña cumple las mismas reglas de fortaleza que en el registro.
-- **US-024-AC-05:** La nueva contraseña se almacena protegida mediante un mecanismo de hash seguro.
-- **US-024-AC-06:** Tras el cambio, la sesión actual se mantiene y el resto de sesiones activas de la cuenta se cierran.
-- **US-024-AC-07:** El sistema limita los intentos fallidos consecutivos con una contraseña actual incorrecta.
-- **US-024-AC-08:** Si la cuenta solo utiliza OAuth y no tiene contraseña local, la opción no se ofrece.
-- **US-024-AC-09:** El sistema registra el cambio con la fecha y la cuenta afectada, sin almacenar ninguna contraseña en claro.
-- **US-024-AC-10:** El sistema informa de forma comprensible del resultado sin revelar credenciales ni información sensible.
+- **US-006-AC-01:** El usuario autenticado puede iniciar el cambio de contraseña desde su perfil.
+- **US-006-AC-02:** El sistema exige la contraseña actual y la nueva contraseña introducida dos veces.
+- **US-006-AC-03:** El sistema rechaza el cambio si la contraseña actual es incorrecta, si las dos nuevas no coinciden o si la nueva es igual a la actual.
+- **US-006-AC-04:** La nueva contraseña cumple las mismas reglas de fortaleza que en el registro.
+- **US-006-AC-05:** La nueva contraseña se almacena protegida mediante un mecanismo de hash seguro.
+- **US-006-AC-06:** Tras el cambio, la sesión actual se mantiene y el resto de sesiones activas de la cuenta se cierran.
+- **US-006-AC-07:** El sistema limita los intentos fallidos consecutivos con una contraseña actual incorrecta.
+- **US-006-AC-08:** Si la cuenta solo utiliza OAuth y no tiene contraseña local, la opción no se ofrece.
+- **US-006-AC-09:** El sistema registra el cambio con la fecha y la cuenta afectada, sin almacenar ninguna contraseña en claro.
+- **US-006-AC-10:** El sistema informa de forma comprensible del resultado sin revelar credenciales ni información sensible.
 
 #### Verificación y restricciones
 
@@ -176,7 +175,7 @@ Como usuario autenticado, quiero cambiar mi contraseña desde mi perfil, para ma
 - Utilizar únicamente datos ficticios o sintéticos durante las pruebas.
 - Cumplir R-03, R-04, R-05, R-06, R-07, R-08 y R-09.
 
-### US-005 — Inicio de sesión alternativo mediante OAuth
+### US-007 — Inicio de sesión alternativo mediante OAuth
 
 Como usuario, quiero iniciar sesión mediante una cuenta de Microsoft (preferiblemente asociada a la Universidad de Extremadura), para acceder sin introducir credenciales locales.
 
@@ -188,12 +187,12 @@ Como usuario, quiero iniciar sesión mediante una cuenta de Microsoft (preferibl
 
 #### Criterios de aceptación
 
-- **US-005-AC-01:** El usuario puede iniciar el flujo OAuth desde la aplicación seleccionando un proveedor configurado.
-- **US-005-AC-02:** Una autenticación válida en Google o GitHub crea o vincula una cuenta local sin duplicar la identidad del usuario.
-- **US-005-AC-03:** La cuenta OAuth queda asociada al perfil y permisos correspondientes.
-- **US-005-AC-04:** La aplicación no almacena la contraseña del proveedor externo.
-- **US-005-AC-05:** El sistema rechaza respuestas OAuth inválidas, canceladas o caducadas con un mensaje comprensible.
-- **US-005-AC-06:** Si la integración no se implementa en el alcance actual, el inicio de sesión local continúa funcionando sin degradación.
+- **US-007-AC-01:** El usuario puede iniciar el flujo OAuth desde la aplicación seleccionando un proveedor configurado.
+- **US-007-AC-02:** Una autenticación válida en Google o GitHub crea o vincula una cuenta local sin duplicar la identidad del usuario.
+- **US-007-AC-03:** La cuenta OAuth queda asociada al perfil y permisos correspondientes.
+- **US-007-AC-04:** La aplicación no almacena la contraseña del proveedor externo.
+- **US-007-AC-05:** El sistema rechaza respuestas OAuth inválidas, canceladas o caducadas con un mensaje comprensible.
+- **US-007-AC-06:** Si la integración no se implementa en el alcance actual, el inicio de sesión local continúa funcionando sin degradación.
 
 #### Verificación y restricciones
 
