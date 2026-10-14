@@ -12,7 +12,7 @@ Como usuario autenticado de Lost&Found UEx, quiero publicar y consultar solicitu
 - **Incertidumbre:** Media
 - **Predecesoras:** EP-001
 - **Plan inicial:** IT-03
-
+  
 ## Historias de usuario
 
 ### US-010 — Publicar una solicitud de búsqueda

@@ -8,7 +8,7 @@ Como usuario de Lost&Found UEx, quiero crear y gestionar mi cuenta, identidad y 
 - **Alcance relacionado:** S-01 — Gestión de cuenta y autenticación
 - **Indicador relacionado:** M-05 — Acceso y autorización
 - **Prioridad:** Must
-- **Estimación:** 48 h-p
+- **Estimación:** 60 h-p
 - **Incertidumbre:** Media
 - **Predecesoras:** —
 - **Plan inicial:** IT-01 e IT-02
@@ -87,6 +87,39 @@ Como usuario autenticado, quiero cerrar mi sesión, para garantizar la seguridad
 - Verificar acceso antes del cierre, acceso posterior con la sesión cerrada y nuevo inicio de sesión.
 - Cumplir R-05, R-08 y R-09.
 
+### US-022 — Recuperar la contraseña olvidada
+
+Como usuario registrado que ha olvidado su contraseña, quiero solicitar un enlace de restablecimiento a mi correo, para recuperar el acceso a mi cuenta sin intervención de un Administrador.
+
+- **Prioridad:** Should
+- **Estimación:** 8 h-p
+- **Incertidumbre:** Media
+- **Predecesoras:** US-001, US-002, US-003
+- **Plan inicial:** IT-02
+
+#### Criterios de aceptación
+
+- **US-022-AC-01:** El usuario puede solicitar la recuperación desde la pantalla de inicio de sesión indicando su correo electrónico.
+- **US-022-AC-02:** El sistema muestra el mismo mensaje de confirmación tanto si el correo está asociado a una cuenta como si no, sin revelar su existencia.
+- **US-022-AC-03:** Si el correo pertenece a una cuenta activa con credenciales locales, el sistema envía un enlace de restablecimiento de un solo uso y con caducidad limitada.
+- **US-022-AC-04:** El sistema no envía enlaces de restablecimiento a cuentas desactivadas.
+- **US-022-AC-05:** Una nueva solicitud invalida los enlaces anteriores que no se hayan utilizado.
+- **US-022-AC-06:** El usuario puede establecer una nueva contraseña desde un enlace válido, cumpliendo las mismas reglas de fortaleza que en el registro.
+- **US-022-AC-07:** El sistema rechaza enlaces caducados, ya utilizados o manipulados con un mensaje comprensible.
+- **US-022-AC-08:** Al restablecer la contraseña, el enlace queda invalidado y se cierran todas las sesiones activas de la cuenta.
+- **US-022-AC-09:** La nueva contraseña se almacena protegida mediante un mecanismo de hash seguro y nunca se envía por correo.
+- **US-022-AC-10:** El sistema limita el número de solicitudes de recuperación para un mismo correo en un periodo de tiempo.
+- **US-022-AC-11:** El sistema registra la solicitud y el restablecimiento con la fecha y la cuenta afectada, sin almacenar la contraseña ni el enlace en claro.
+
+#### Verificación y restricciones
+
+- Verificar el flujo completo con un correo registrado, un correo inexistente y una cuenta desactivada.
+- Verificar el rechazo de enlaces caducados, reutilizados, manipulados y anteriores a una nueva solicitud.
+- Verificar que las sesiones abiertas dejan de ser válidas tras el restablecimiento y que la contraseña anterior ya no permite iniciar sesión.
+- Verificar el límite de solicitudes y que ni el enlace ni la contraseña aparecen en registros ni respuestas de la API.
+- Utilizar únicamente datos ficticios o sintéticos y un servidor de correo de pruebas.
+- Cumplir R-03, R-04, R-05, R-06, R-07, R-08 y R-09.
+
 ### US-004 — Gestión de perfil e información de contacto
 
 Como usuario, quiero editar mis datos y teléfono de contacto, para que me localicen si reclamo o entrego un objeto.
@@ -111,6 +144,37 @@ Como usuario, quiero editar mis datos y teléfono de contacto, para que me local
 - Verificar consulta, alta, edición y eliminación del teléfono, datos inválidos y aislamiento entre usuarios.
 - Verificar que el teléfono solo se muestra en las operaciones y vistas autorizadas.
 - Cumplir R-03, R-04, R-05, R-08, R-09 y R-11.
+
+### US-024 — Cambiar la contraseña desde el perfil
+
+Como usuario autenticado, quiero cambiar mi contraseña desde mi perfil, para mantener la seguridad de mi cuenta cuando sospeche que ha podido verse comprometida o quiera renovarla.
+
+- **Prioridad:** Should
+- **Estimación:** 4 h-p
+- **Incertidumbre:** Baja
+- **Predecesoras:** US-001, US-002, US-004
+- **Plan inicial:** IT-02
+
+#### Criterios de aceptación
+
+- **US-024-AC-01:** El usuario autenticado puede iniciar el cambio de contraseña desde su perfil.
+- **US-024-AC-02:** El sistema exige la contraseña actual y la nueva contraseña introducida dos veces.
+- **US-024-AC-03:** El sistema rechaza el cambio si la contraseña actual es incorrecta, si las dos nuevas no coinciden o si la nueva es igual a la actual.
+- **US-024-AC-04:** La nueva contraseña cumple las mismas reglas de fortaleza que en el registro.
+- **US-024-AC-05:** La nueva contraseña se almacena protegida mediante un mecanismo de hash seguro.
+- **US-024-AC-06:** Tras el cambio, la sesión actual se mantiene y el resto de sesiones activas de la cuenta se cierran.
+- **US-024-AC-07:** El sistema limita los intentos fallidos consecutivos con una contraseña actual incorrecta.
+- **US-024-AC-08:** Si la cuenta solo utiliza OAuth y no tiene contraseña local, la opción no se ofrece.
+- **US-024-AC-09:** El sistema registra el cambio con la fecha y la cuenta afectada, sin almacenar ninguna contraseña en claro.
+- **US-024-AC-10:** El sistema informa de forma comprensible del resultado sin revelar credenciales ni información sensible.
+
+#### Verificación y restricciones
+
+- Verificar el cambio correcto, la contraseña actual incorrecta, la confirmación que no coincide, la contraseña repetida y la contraseña débil.
+- Verificar que la contraseña anterior deja de ser válida, que la sesión actual continúa y que las demás sesiones se cierran.
+- Verificar el límite de intentos fallidos y que las contraseñas no aparecen en registros ni respuestas de la API.
+- Utilizar únicamente datos ficticios o sintéticos durante las pruebas.
+- Cumplir R-03, R-04, R-05, R-06, R-07, R-08 y R-09.
 
 ### US-005 — Inicio de sesión alternativo mediante OAuth
 
@@ -145,7 +209,7 @@ Como usuario, quiero iniciar sesión mediante Google o GitHub, para acceder sin 
 | Objetivo | G-04 — Acceso controlado |
 | Alcance | S-01 — Gestión de cuenta y autenticación |
 | Indicador | M-05 — El 100 % de las pruebas definidas para autenticación y autorización producen el comportamiento esperado |
-| Historias | US-001, US-002, US-003, US-004 y US-005 |
+| Historias | US-001, US-002, US-003, US-022, US-004, US-024 y US-005 |
 | Iteraciones | IT-01 e IT-02 |
 | Roles | Usuario y Administrador |
 | Autenticación principal | Correo electrónico y contraseña |
