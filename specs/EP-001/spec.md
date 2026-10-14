@@ -1,115 +1,153 @@
-# EP-001 — Acceso y perfiles
+# EP-001 — Gestión de cuenta, identidad y perfil
 
 ## Épica
 
-Como usuario de Lost&Found UEx, quiero identificarme y disponer de un perfil asociado a mis publicaciones, para utilizar los feeds de hallazgos y solicitudes de forma controlada.
+Como usuario de Lost&Found UEx, quiero crear y gestionar mi cuenta, identidad y perfil, para acceder de forma segura a las funcionalidades de la plataforma y facilitar el contacto relacionado con los objetos.
 
 - **Objetivos relacionados:** G-04
-- **Alcance relacionado:** S-01 — Autenticación
+- **Alcance relacionado:** S-01 — Gestión de cuenta y autenticación
 - **Indicador relacionado:** M-05 — Acceso y autorización
 - **Prioridad:** Must
-- **Estimación:** 14 h-p
+- **Estimación:** 48 h-p
 - **Incertidumbre:** Media
 - **Predecesoras:** —
-- **Plan inicial:** Release 1, Iteración 1
+- **Plan inicial:** IT-01 e IT-02
 
 ## Historias de usuario
 
-### US-001 — Inicio de sesión mediante proveedor externo
+### US-001 — Registro de cuenta con credenciales
 
-Como usuario, quiero iniciar sesión mediante un proveedor externo de autenticación, para acceder a la aplicación sin que esta almacene directamente mis credenciales.
+Como nuevo usuario, quiero registrarme con mi correo electrónico y contraseña, para disponer de una cuenta en la plataforma.
 
 - **Prioridad:** Must
-- **Estimación:** 5 h-p
-- **Incertidumbre:** Media
+- **Estimación:** 11 h-p
+- **Incertidumbre:** Baja
 - **Predecesoras:** —
-- **Plan inicial:** Release 1, Iteración 1
+- **Plan inicial:** IT-01
 
 #### Criterios de aceptación
 
-- **US-001-AC-01:** El usuario puede iniciar el flujo de autenticación desde la aplicación y es redirigido al proveedor externo configurado.
-- **US-001-AC-02:** Cuando el proveedor autentica correctamente al usuario, la aplicación crea una sesión identificada y permite acceder a las funcionalidades autorizadas.
-- **US-001-AC-03:** La aplicación no almacena las credenciales del usuario del proveedor externo.
+- **US-001-AC-01:** El usuario puede registrarse proporcionando un correo electrónico y una contraseña válidos.
+- **US-001-AC-02:** El sistema valida el formato del correo, la fortaleza mínima de la contraseña y los campos obligatorios.
+- **US-001-AC-03:** El sistema rechaza el registro si el correo ya está asociado a una cuenta activa.
+- **US-001-AC-04:** La contraseña no se almacena en texto claro y se protege mediante un mecanismo de hash seguro.
+- **US-001-AC-05:** La cuenta se crea con rol Usuario por defecto y queda preparada para iniciar sesión.
+- **US-001-AC-06:** El sistema informa de forma comprensible de los errores sin revelar credenciales ni información sensible.
 
 #### Verificación y restricciones
 
-- Verificar mediante pruebas de integración el acceso correcto y el rechazo de accesos no autenticados.
-- Utilizar únicamente cuentas y datos ficticios o sintéticos.
-- Cumplir R-03, R-04, R-05, R-06 y A-02.
+- Verificar registro válido, correo duplicado, correo inválido, contraseña insuficiente y almacenamiento no reversible de la contraseña.
+- Utilizar únicamente datos ficticios o sintéticos durante las pruebas.
+- Cumplir R-03, R-04, R-05, R-06 y R-08.
 
-### US-002 — Creación del perfil de usuario
+### US-002 — Inicio de sesión con credenciales locales
 
-Como usuario que accede por primera vez, quiero que la aplicación cree mi perfil automáticamente con el rol Usuario, para publicar hallazgos y solicitudes sin una gestión manual previa.
-
-- **Prioridad:** Must
-- **Estimación:** 4 h-p
-- **Incertidumbre:** Media
-- **Predecesoras:** US-001
-- **Plan inicial:** Release 1, Iteración 1
-
-#### Criterios de aceptación
-
-- **US-002-AC-01:** Tras el primer acceso autenticado, la aplicación crea un perfil si todavía no existe.
-- **US-002-AC-02:** Todo perfil nuevo recibe el rol Usuario por defecto.
-- **US-002-AC-03:** Un acceso posterior reutiliza el perfil existente y no crea duplicados.
-- **US-002-AC-04:** El perfil conserva la identidad necesaria para asociar al usuario sus publicaciones y contactos.
-
-#### Verificación y restricciones
-
-- Verificar el primer acceso, los accesos posteriores y la ausencia de perfiles duplicados.
-- Verificar que la identidad procede del proveedor externo y que no se almacenan credenciales locales.
-- Cumplir R-03, R-05, R-06 y A-08.
-
-### US-003 — Cierre de sesión
-
-Como usuario autenticado, quiero cerrar mi sesión, para impedir que otra persona utilice mi acceso desde el mismo dispositivo.
+Como usuario registrado, quiero autenticarme con mi correo y contraseña, para acceder a las funciones del sistema.
 
 - **Prioridad:** Must
-- **Estimación:** 2 h-p
+- **Estimación:** 11 h-p
 - **Incertidumbre:** Baja
 - **Predecesoras:** US-001
-- **Plan inicial:** Release 1, Iteración 1
+- **Plan inicial:** IT-01
+
+#### Criterios de aceptación
+
+- **US-002-AC-01:** El usuario puede iniciar sesión proporcionando las credenciales de una cuenta registrada.
+- **US-002-AC-02:** Las credenciales válidas crean una sesión autenticada y permiten acceder a las operaciones autorizadas.
+- **US-002-AC-03:** El sistema rechaza credenciales incorrectas, cuentas inexistentes y cuentas desactivadas con un mensaje comprensible.
+- **US-002-AC-04:** El sistema no revela si el correo existe cuando las credenciales no son válidas.
+- **US-002-AC-05:** La sesión autenticada identifica al usuario y permite aplicar sus permisos.
+
+#### Verificación y restricciones
+
+- Verificar inicio correcto, contraseña incorrecta, correo inexistente y cuenta desactivada.
+- Verificar que las credenciales no aparecen en registros ni respuestas de la API.
+- Cumplir R-04, R-05, R-06, R-08 y R-09.
+
+### US-003 — Cierre de sesión seguro
+
+Como usuario autenticado, quiero cerrar mi sesión, para garantizar la seguridad de mi cuenta en terminales compartidos.
+
+- **Prioridad:** Must
+- **Estimación:** 7 h-p
+- **Incertidumbre:** Baja
+- **Predecesoras:** US-002
+- **Plan inicial:** IT-01
 
 #### Criterios de aceptación
 
 - **US-003-AC-01:** El usuario autenticado puede iniciar el cierre de sesión.
-- **US-003-AC-02:** Tras cerrar la sesión, las operaciones que requieren autenticación dejan de estar disponibles hasta volver a identificarse.
-- **US-003-AC-03:** El sistema informa de forma comprensible cuando se intenta acceder a una operación autenticada sin sesión activa.
+- **US-003-AC-02:** El cierre invalida la sesión y los tokens o credenciales temporales asociados conforme a la estrategia adoptada.
+- **US-003-AC-03:** Una sesión cerrada no permite acceder a operaciones autenticadas.
+- **US-003-AC-04:** El sistema informa de forma comprensible cuando se intenta utilizar una sesión cerrada.
+- **US-003-AC-05:** El cierre de sesión no elimina la cuenta ni las publicaciones del usuario.
 
 #### Verificación y restricciones
 
-- Verificar que una sesión cerrada no permite publicar, editar ni contactar.
-- Cumplir R-05 y R-08.
+- Verificar acceso antes del cierre, acceso posterior con la sesión cerrada y nuevo inicio de sesión.
+- Cumplir R-05, R-08 y R-09.
 
-### US-004 — Autorización de Usuario y Administrador
+### US-004 — Gestión de perfil e información de contacto
 
-Como responsable de la aplicación, quiero que el sistema diferencie las operaciones de Usuario y Administrador.
+Como usuario, quiero editar mis datos y teléfono de contacto, para que me localicen si reclamo o entrego un objeto.
 
 - **Prioridad:** Must
-- **Estimación:** 3 h-p
-- **Incertidumbre:** Media
-- **Predecesoras:** US-001, US-002
-- **Plan inicial:** Release 1, Iteración 1
+- **Estimación:** 10 h-p
+- **Incertidumbre:** Baja
+- **Predecesoras:** US-002
+- **Plan inicial:** IT-01
 
 #### Criterios de aceptación
 
-- **US-004-AC-01:** El sistema reconoce los roles Usuario y Administrador.
-- **US-004-AC-02:** Los usuarios nuevos reciben el rol Usuario y pueden publicar y gestionar únicamente sus propios contenidos.
-- **US-004-AC-03:** El Administrador puede ejecutar las operaciones administrativas autorizadas.
-- **US-004-AC-04:** Una operación no autorizada se rechaza tanto desde la interfaz como desde la API y muestra un mensaje comprensible.
+- **US-004-AC-01:** El usuario autenticado puede consultar su perfil y editar los campos permitidos.
+- **US-004-AC-02:** El usuario puede añadir, modificar o eliminar su teléfono de contacto conforme a las reglas del sistema.
+- **US-004-AC-03:** El sistema valida el formato y los límites de los datos antes de guardarlos.
+- **US-004-AC-04:** Un usuario solo puede consultar y editar su propio perfil.
+- **US-004-AC-05:** El cambio de perfil conserva la identidad, rol y publicaciones asociadas a la cuenta.
+- **US-004-AC-06:** El sistema informa de forma comprensible ante datos inválidos o una operación no autorizada.
 
 #### Verificación y restricciones
 
-- Verificar el acceso permitido y denegado para Usuario y Administrador en la interfaz y en la API.
-- Cumplir R-05, R-08 y R-09.
+- Verificar consulta, alta, edición y eliminación del teléfono, datos inválidos y aislamiento entre usuarios.
+- Verificar que el teléfono solo se muestra en las operaciones y vistas autorizadas.
+- Cumplir R-03, R-04, R-05, R-08, R-09 y R-11.
+
+### US-005 — Inicio de sesión alternativo mediante OAuth
+
+Como usuario, quiero iniciar sesión mediante Google o GitHub, para acceder sin introducir credenciales locales.
+
+- **Prioridad:** Could
+- **Estimación:** 9 h-p
+- **Incertidumbre:** Media
+- **Predecesoras:** US-002, US-004
+- **Plan inicial:** IT-02
+
+#### Criterios de aceptación
+
+- **US-005-AC-01:** El usuario puede iniciar el flujo OAuth desde la aplicación seleccionando un proveedor configurado.
+- **US-005-AC-02:** Una autenticación válida en Google o GitHub crea o vincula una cuenta local sin duplicar la identidad del usuario.
+- **US-005-AC-03:** La cuenta OAuth queda asociada al perfil y permisos correspondientes.
+- **US-005-AC-04:** La aplicación no almacena la contraseña del proveedor externo.
+- **US-005-AC-05:** El sistema rechaza respuestas OAuth inválidas, canceladas o caducadas con un mensaje comprensible.
+- **US-005-AC-06:** Si la integración no se implementa en el alcance actual, el inicio de sesión local continúa funcionando sin degradación.
+
+#### Verificación y restricciones
+
+- Verificar autenticación correcta, cancelación, respuesta inválida y vinculación con una cuenta existente.
+- Verificar que el flujo alternativo no expone ni almacena credenciales externas.
+- Cumplir R-03, R-05, R-06, R-08, R-09 y A-02.
 
 ## Trazabilidad de la épica
 
 | Elemento | Referencia |
 | --- | --- |
-| Misión | Facilitar una gestión clara, organizada y fiable de objetos perdidos y encontrados |
+| Misión | Facilitar una gestión segura y fiable de objetos perdidos y encontrados |
 | Objetivo | G-04 — Acceso controlado |
-| Alcance | S-01 — Autenticación |
+| Alcance | S-01 — Gestión de cuenta y autenticación |
 | Indicador | M-05 — El 100 % de las pruebas definidas para autenticación y autorización producen el comportamiento esperado |
+| Historias | US-001, US-002, US-003, US-004 y US-005 |
+| Iteraciones | IT-01 e IT-02 |
 | Roles | Usuario y Administrador |
-| Restricciones | R-03, R-04, R-05, R-06, R-08 y R-09 |
+| Autenticación principal | Correo electrónico y contraseña |
+| Autenticación alternativa | OAuth con Google o GitHub, prioridad Could |
+| Restricciones | R-03, R-04, R-05, R-06, R-08, R-09 y R-11 |

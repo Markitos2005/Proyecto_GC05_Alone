@@ -1,125 +1,135 @@
-# EP-002 — Feed de hallazgos
+﻿# EP-002 — Gestión y exploración de objetos encontrados
 
 ## Épica
 
-Como usuario autenticado de Lost&Found UEx, quiero publicar y consultar hallazgos de objetos, para informar a las personas que puedan estar buscándolos y facilitar el contacto posterior.
+Como usuario de Lost&Found UEx, quiero publicar, explorar y gestionar objetos encontrados, para facilitar que sus propietarios los identifiquen y puedan iniciar el contacto para recuperarlos.
 
-- **Objetivos relacionados:** G-01
+- **Objetivos relacionados:** G-01, G-02
 - **Alcance relacionado:** S-02 — Feed de hallazgos
-- **Indicador relacionado:** M-01 — Usuarios que completan el registro de un hallazgo
+- **Indicadores relacionados:** M-01 — Usuarios que completan el registro de un hallazgo; M-02 — Usuarios que encuentran un objeto mediante búsqueda
 - **Prioridad:** Must
-- **Estimación:** 16 h-p
+- **Estimación:** 41 h-p 
 - **Incertidumbre:** Media
 - **Predecesoras:** EP-001
-- **Plan inicial:** Release 1, Iteraciones 2 y 3
+- **Plan inicial:** IT-02 e IT-03
 
 ## Historias de usuario
 
-### US-005 — Publicar un hallazgo
+### US-006 — Publicar un hallazgo con imágenes, categorías y geolocalización
 
-Como usuario autenticado, quiero publicar un objeto encontrado, para informar de su existencia y permitir que otra persona pueda reconocerlo.
+Como usuario autenticado, quiero publicar un objeto encontrado con imágenes, una categoría y una ubicación geográfica, para aportar información suficiente que facilite su identificación.
 
 - **Prioridad:** Must
-- **Estimación:** 5 h-p
+- **Estimación:** 14 h-p
 - **Incertidumbre:** Media
-- **Predecesoras:** US-001, US-002
-- **Plan inicial:** Release 1, Iteración 2
+- **Predecesoras:** US-003, US-005
+- **Plan inicial:** IT-02
 
 #### Criterios de aceptación
 
-- **US-005-AC-01:** El usuario autenticado puede iniciar una publicación de tipo hallazgo.
-- **US-005-AC-02:** El usuario puede indicar categoría, descripción pública, ubicación aproximada, fecha del hallazgo y, cuando proceda, punto de entrega.
-- **US-005-AC-03:** El usuario puede indicar rasgos identificativos privados que no se muestran en el feed público.
-- **US-005-AC-04:** Al completar correctamente la publicación, el hallazgo se crea con estado Activo y queda asociado al usuario que lo publicó.
-- **US-005-AC-05:** El sistema valida los datos obligatorios antes de crear la publicación y no la guarda si la validación falla.
+- **US-006-AC-01:** El usuario autenticado puede iniciar una publicación de tipo hallazgo.
+- **US-006-AC-02:** El usuario puede seleccionar una categoría válida y aportar descripción pública, fecha del hallazgo y, cuando proceda, punto de entrega.
+- **US-006-AC-03:** El usuario puede indicar una ubicación mediante coordenadas geográficas válidas o la interfaz de localización definida por el producto.
+- **US-006-AC-04:** El usuario puede adjuntar una o más imágenes en los formatos y límites de tamaño establecidos.
+- **US-006-AC-05:** El usuario puede añadir rasgos identificativos privados que no se muestran en el feed público.
+- **US-006-AC-06:** Al completar correctamente la publicación, el hallazgo se crea con estado Activo y queda asociado al usuario que lo publicó.
+- **US-006-AC-07:** El sistema valida los campos obligatorios, la categoría, la ubicación y las imágenes antes de guardar la publicación.
+- **US-006-AC-08:** Si una validación falla, el sistema informa del error y no guarda una publicación incompleta.
 
 #### Verificación y restricciones
 
-- Verificar que al menos 4 de 5 participantes completan la publicación sin ayuda y en menos de 5 minutos.
-- Verificar que la información pública y los rasgos privados se almacenan de forma separada.
+- Verificar la publicación con categoría, ubicación e imágenes válidas y rechazar formatos, tamaños o coordenadas inválidos.
+- Verificar que la información pública y los rasgos privados se almacenan y muestran de forma separada.
 - Cumplir R-03, R-04, R-05, R-08, R-09, A-03 y A-07.
 
-### US-006 — Consultar el feed de hallazgos
+### US-007 — Consultar y explorar el feed público de hallazgos
 
-Como usuario, quiero consultar un feed de hallazgos activos, para revisar si se ha encontrado un objeto que pueda corresponder a lo que busco.
+Como usuario, quiero consultar y explorar un feed público paginado de objetos encontrados, para revisar hallazgos activos.
 
 - **Prioridad:** Must
-- **Estimación:** 4 h-p
+- **Estimación:** 10 h-p
 - **Incertidumbre:** Baja
-- **Predecesoras:** US-005
-- **Plan inicial:** Release 1, Iteración 2
+- **Predecesoras:** US-006
+- **Plan inicial:** IT-02
 
 #### Criterios de aceptación
 
-- **US-006-AC-01:** El usuario puede consultar un listado de hallazgos activos sin conocer su identificador.
-- **US-006-AC-02:** Cada publicación muestra como mínimo la categoría, la descripción pública, la ubicación aproximada, la fecha y el estado.
-- **US-006-AC-03:** El feed no muestra los rasgos identificativos privados ni la dirección de correo del autor.
-- **US-006-AC-04:** El sistema informa de forma comprensible cuando no hay hallazgos activos.
+- **US-007-AC-01:** El usuario puede consultar un listado paginado de hallazgos Activos.
+- **US-007-AC-02:** La respuesta permite avanzar y retroceder entre páginas sin duplicar ni perder resultados.
+- **US-007-AC-03:** Cada resultado muestra como mínimo categoría, descripción pública, ubicación permitida, fecha, estado e imágenes públicas cuando existan.
+- **US-007-AC-04:** El feed no muestra rasgos identificativos privados ni la dirección de correo del autor.
+- **US-007-AC-05:** El sistema informa de forma comprensible cuando no hay hallazgos activos o no existe la página solicitada.
 
 #### Verificación y restricciones
 
-- Verificar que el feed solo muestra información pública y hallazgos activos.
-- Verificar que un usuario no autenticado solo puede consultar la información que el producto haya definido como pública.
+- Verificar paginación con cero, uno y varios bloques de resultados, incluidos los límites de primera y última página.
+- Verificar que solo se expone información pública y que los datos ficticios son sintéticos.
 - Cumplir R-03, R-05, R-08, R-09 y R-11.
 
-### US-007 — Buscar y filtrar hallazgos
+### US-008 — Filtrar hallazgos por fecha, categoría y proximidad
 
-Como usuario, quiero buscar y filtrar el feed de hallazgos, para localizar publicaciones relacionadas con el objeto que estoy buscando.
-
-- **Prioridad:** Must
-- **Estimación:** 4 h-p
-- **Incertidumbre:** Media
-- **Predecesoras:** US-006
-- **Plan inicial:** Release 1, Iteración 3
-
-#### Criterios de aceptación
-
-- **US-007-AC-01:** El usuario puede buscar hallazgos por texto en sus campos públicos.
-- **US-007-AC-02:** El usuario puede filtrar por categoría, ubicación aproximada y estado.
-- **US-007-AC-03:** Puede combinar varios filtros y eliminarlos para volver al feed completo.
-- **US-007-AC-04:** La búsqueda no distingue entre mayúsculas y minúsculas.
-- **US-007-AC-05:** El sistema informa de forma comprensible cuando no existen coincidencias.
-
-#### Verificación y restricciones
-
-- Verificar búsquedas con coincidencias, sin coincidencias, texto vacío y filtros combinados.
-- Verificar que los rasgos privados nunca se utilizan como campos públicos de búsqueda.
-- Cumplir R-03, R-04, R-08 y R-09.
-
-### US-008 — Gestionar un hallazgo propio
-
-Como usuario que ha publicado un hallazgo, quiero consultar su detalle, editarlo o cerrarlo, para mantener actualizada la información y dejar de mostrarlo cuando el caso ya no esté activo.
+Como usuario, quiero filtrar los hallazgos por fechas, categorías, para localizar publicaciones relevantes para mi búsqueda.
 
 - **Prioridad:** Should
-- **Estimación:** 3 h-p
+- **Estimación:** 7 h-p
 - **Incertidumbre:** Media
-- **Predecesoras:** US-005
-- **Plan inicial:** Release 1, Iteración 3
+- **Predecesoras:** US-007
+- **Plan inicial:** IT-03
 
 #### Criterios de aceptación
 
-- **US-008-AC-01:** El autor puede consultar el detalle completo de su hallazgo, incluidos sus rasgos identificativos privados.
-- **US-008-AC-02:** El autor puede editar un hallazgo propio mientras permanezca Activo.
-- **US-008-AC-03:** El sistema valida los datos modificados antes de guardarlos.
-- **US-008-AC-04:** El autor puede cerrar su hallazgo, que pasa de Activo a Cerrado y deja de aparecer en el feed activo.
-- **US-008-AC-05:** Un usuario no puede editar ni cerrar hallazgos publicados por otra persona.
-- **US-008-AC-06:** El sistema informa de forma comprensible cuando el hallazgo ya está cerrado o la operación no está permitida.
+- **US-008-AC-01:** El usuario puede filtrar por fecha o intervalo de fechas del hallazgo.
+- **US-008-AC-02:** El usuario puede filtrar por una o varias categorías.
+- **US-008-AC-03:** El usuario puede indicar una ubicación de referencia y un radio de proximidad válido.
+- **US-008-AC-04:** El sistema devuelve únicamente hallazgos que cumplen simultáneamente los filtros aplicados.
+- **US-008-AC-05:** El usuario puede combinar, limpiar y modificar los filtros sin salir del feed.
+- **US-008-AC-06:** Los filtros se aplican únicamente sobre información pública y no sobre rasgos privados.
+- **US-008-AC-07:** El sistema informa de forma comprensible cuando no existen coincidencias o los parámetros son inválidos.
 
 #### Verificación y restricciones
 
-- Verificar la edición y el cierre por el autor y el rechazo de las mismas operaciones para otro usuario.
-- Verificar la transición Activo → Cerrado y que no se permite reactivar el hallazgo desde esta funcionalidad.
-- Cumplir R-04, R-05, R-08, R-09 y D-06.
+- Verificar filtros por separado, combinados, sin resultados, con fechas límite y con radios válidos e inválidos.
+- Verificar que el cálculo de proximidad no expone coordenadas privadas innecesarias.
+- Cumplir R-03, R-04, R-08, R-09 y R-11.
+
+### US-009 — Gestionar un hallazgo propio
+
+Como usuario que ha publicado un hallazgo, quiero editar sus datos, marcarlo como devuelto o retirarlo, para mantener actualizada la publicación y reflejar la situación del objeto.
+
+- **Prioridad:** Should
+- **Estimación:** 10 h-p
+- **Incertidumbre:** Baja
+- **Predecesoras:** US-006
+- **Plan inicial:** IT-03
+
+#### Criterios de aceptación
+
+- **US-009-AC-01:** El autor puede consultar el detalle completo de su hallazgo, incluidas sus imágenes y rasgos identificativos privados.
+- **US-009-AC-02:** El autor puede editar los datos permitidos de un hallazgo propio mientras permanezca Activo.
+- **US-009-AC-03:** El sistema valida los datos modificados antes de guardarlos y conserva el autor de la publicación.
+- **US-009-AC-04:** El autor puede marcar un hallazgo Activo como Devuelto cuando el objeto haya sido entregado a su propietario.
+- **US-009-AC-05:** El autor puede retirar un hallazgo Activo, que pasa a estado Retirado y deja de aparecer en el feed público.
+- **US-009-AC-06:** Un hallazgo Devuelto o Retirado no puede volver a publicarse como Activo mediante esta funcionalidad.
+- **US-009-AC-07:** Un usuario no puede editar, marcar como Devuelto ni retirar un hallazgo de otra persona.
+- **US-009-AC-08:** El sistema registra el cambio de estado con fecha, usuario y motivo cuando proceda.
+
+#### Verificación y restricciones
+
+- Verificar edición, transición `Activo → Devuelto`, transición `Activo → Retirado` y rechazo de operaciones por otros usuarios.
+- Verificar que los hallazgos Devueltos y Retirados no aparecen en el feed público y conservan su historial.
+- Cumplir R-04, R-05, R-07, R-08, R-09 y D-06.
 
 ## Trazabilidad de la épica
 
 | Elemento | Referencia |
 | --- | --- |
-| Misión | Centralizar la publicación y consulta de objetos encontrados |
-| Objetivo | G-01 — Registro y consulta de objetos |
+| Misión | Centralizar la publicación y exploración de objetos encontrados |
+| Objetivos | G-01 — Registro y consulta de objetos; G-02 — Contacto para la recuperación |
 | Alcance | S-02 — Feed de hallazgos |
-| Indicador | M-01 — Al menos 4 de 5 participantes completan el registro de un hallazgo sin ayuda y en menos de 5 minutos |
-| Estado | Hallazgo: Activo → Cerrado |
-| Información pública | Categoría, descripción pública, ubicación aproximada, fecha y estado |
-| Información privada | Rasgos identificativos, visibles únicamente para el autor y bajo las reglas de acceso definidas |
-| Restricciones | R-03, R-04, R-05, R-08 y R-09 |
+| Indicadores | M-01 — Registro de un hallazgo; M-02 — Localización de publicaciones mediante búsqueda y filtros |
+| Historias | US-006, US-007, US-008 y US-009 |
+| Estados | Hallazgo: Activo → Devuelto o Retirado |
+| Información pública | Categoría, descripción pública, ubicación permitida, fecha, imágenes públicas y estado |
+| Información privada | Rasgos identificativos y datos restringidos del hallazgo |
+| Restricciones | R-03, R-04, R-05, R-07, R-08, R-09 y R-11 |
+| Decisiones | D-02, D-06, D-07 y D-08 |
