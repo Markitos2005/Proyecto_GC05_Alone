@@ -173,11 +173,11 @@ La entrega física se realiza según las instrucciones del Conserje y las normas
 | IT-03 | Búsqueda guiada y feed de pérdidas | S-03 y S-05; EP-003 y parte de EP-002 |
 | IT-04 | Solicitudes y validación de recuperación | S-04; EP-004 |
 | IT-05 | Administración y asignaciones | S-06; EP-005 |
-| IT-06 | Integración, demostración y revisión final | S-07, pruebas globales, documentación y validación transversal |
+| IT-06 | Implementación de historias adicionales y revisión final | Historias adicionales definidas para la iteración, S-07 |
 
 ### Distribución de historias por iteración
 
-La capacidad efectiva disponible es de 40 h-p por semana. Las historias se asignan respetando sus predecesoras y procurando equilibrar la carga. IT-06 incorpora las historias de trazabilidad, reportes y auditoría que pueden completarse después de los flujos funcionales, además de reservar capacidad para integración, documentación, datos de demostración, pruebas globales y revisión final.
+La capacidad efectiva disponible es de 40 h-p por semana. Las historias se asignan respetando sus predecesoras y procurando equilibrar la carga. IT-06 se orienta principalmente a implementar las historias adicionales definidas para esta iteración, incluyendo las de trazabilidad, reportes y auditoría que pueden completarse después de los flujos funcionales. También reserva capacidad para integración, documentación, datos de demostración, pruebas globales y revisión final.
 
 | Iteración | Historias | Carga estimada |
 | --- | --- | ---: |
@@ -188,7 +188,7 @@ La capacidad efectiva disponible es de 40 h-p por semana. Las historias se asign
 | IT-05 | US-012, US-020, US-024, US-025 | 34 h-p |
 | IT-06 | US-021, US-022, US-026 | 18 h-p |
 
-La carga máxima es de 35 h-p en IT-02 e IT-04, por debajo de la capacidad efectiva de 40 h-p por iteración. La suma de las estimaciones visibles de las historias es 178 h-p; las estimaciones agregadas de las épicas pueden incluir trabajo técnico transversal no desglosado en historias.
+La carga máxima es de 35 h-p en IT-02 e IT-04, por debajo de la capacidad efectiva de 40 h-p por iteración. La suma de las estimaciones por iteración es 178 h-p (25 + 35 + 31 + 35 + 34 + 18), y coincide con la suma de las estimaciones de las épicas: EP-001 (46 h-p), EP-002 (46 h-p), EP-003 (24 h-p), EP-004 (31 h-p) y EP-005 (31 h-p). No se incluye trabajo técnico transversal no desglosado en historias.
 
 Las historias no se consideran completas hasta cumplir la Definition of Done, sus criterios de aceptación y las restricciones aplicables.
 
@@ -257,4 +257,4 @@ Cualquier modificación de un objetivo, indicador, alcance, rol, estado, supuest
 | D-07 | 14/10/2026 | La recuperación se solicita mediante un formulario con información justificativa, queda Pendiente y requiere validación de un Conserje antes de emitir el aviso al Usuario. | S-04, G-03 |
 | D-08 | 14/10/2026 | Se elimina el contacto externo como mecanismo de recuperación y se sustituye por solicitudes gestionadas dentro de la aplicación. | S-04, R-08 |
 | D-09 | 14/10/2026 | Los avisos de pérdidas permanecen desacoplados de los hallazgos de Conserjería y no generan coincidencias ni solicitudes automáticamente. | S-05, R-12 |
-| D-10 | 14/10/2026 | Se mantiene una planificación de seis iteraciones; IT-06 queda reservada para integración, demostración, documentación y revisión final transversal. | Plan de ejecución, S-07, G-06 |
+| D-10 | 14/10/2026 | Se mantiene una planificación de seis iteraciones; IT-06 prioriza la implementación de historias adicionales y mantiene la integración, demostración, documentación y revisión final transversal. | Plan de ejecución, S-07, G-06 |

@@ -4,11 +4,11 @@
 
 Como usuario de Lost&Found UEx, quiero crear y gestionar mi cuenta, identidad y perfil, para acceder de forma segura a las funcionalidades de la plataforma y facilitar el contacto relacionado con los objetos.
 
-- **Objetivos relacionados:** G-04
+- **Objetivos relacionados:** G-05
 - **Alcance relacionado:** S-01 — Gestión de cuenta y autenticación
 - **Indicador relacionado:** M-05 — Acceso y autorización
 - **Prioridad:** Must
-- **Estimación:** 60 h-p
+- **Estimación:** 46 h-p
 - **Incertidumbre:** Media
 - **Predecesoras:** —
 - **Plan inicial:** IT-01 e IT-02
@@ -205,7 +205,7 @@ Como usuario, quiero iniciar sesión mediante una cuenta de Microsoft (preferibl
 | Elemento | Referencia |
 | --- | --- |
 | Misión | Facilitar una gestión segura y fiable de objetos perdidos y encontrados |
-| Objetivo | G-04 — Acceso controlado |
+| Objetivo | G-05 — Acceso controlado |
 | Alcance | S-01 — Gestión de cuenta y autenticación |
 | Indicador | M-05 — El 100 % de las pruebas definidas para autenticación y autorización producen el comportamiento esperado |
 | Historias | US-001, US-002, US-003, US-004 y US-005 |

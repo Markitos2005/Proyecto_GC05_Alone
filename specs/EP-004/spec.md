@@ -1,4 +1,4 @@
-# EP-004 — Solicitudes de recuperación y trazabilidad
+﻿# EP-004 — Solicitudes de recuperación y trazabilidad
 
 ## Épica
 

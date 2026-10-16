@@ -87,21 +87,21 @@ Las excepciones deberán ser explícitas, justificadas, aprobadas y, cuando sea 
 * **Contexto:** Grupo de estudiantes de la Universidad de Extremadura. El proyecto estará condicionado por la necesidad de compatibilizar su desarrollo con otras actividades académicas. 
 
 ### 5.2. Miembros y Responsabilidades
-| Integrante | Rol Principal | Responsabilidades |
-| :--- | :--- | :--- |
+| Integrante | Rol Principal | Responsabilidades | Capacidad Efectiva (h/semana) |
+| :--- | :--- | :--- | :--- |
 | Luis Caballero | Product Owner | visión y valor, mantener y priorizar el Product
 Backlog, escribir historias con criterios de aceptación, gestionar 
-stakeholders, aceptar/rechazar incrementos, alinear roadmap y objetivos.  |
+stakeholders, aceptar/rechazar incrementos, alinear roadmap y objetivos.  | 5 |
 | Samuel Gomes | Scrum Master | facilitar ceremonias, proteger el proceso y el 
 timeboxing, fomentar comunicación y feedback, mejorar el flujo (WIP, 
-cycle time), impulsar retrospectivas y acuerdos de trabajo. |
+cycle time), impulsar retrospectivas y acuerdos de trabajo. | 10 |
 | Ángel Parra | Tech Lead | arquitectura y estándares, decisiones técnicas 
 (ADRs), descomposición en tareas, revisión de PRs, control de deuda 
-técnica, mentoring y gestión de riesgos. |
+técnica, mentoring y gestión de riesgos. | 10 |
 | Raúl Rosado | DevOps/QA | CI/CD, estrategia de pruebas (unitarias, 
 integración, e2e), gestión de entornos, release management, 
-observabilidad básica, runbooks y despliegues. |
-| Marcos Escribano | Developer | Diseño e implementación de código, desarrollo de pruebas unitarias y de integración, refactorización, estimación técnica de tareas, documentación de componentes y cumplimiento de la Definition of Done (DoD). |
+observabilidad básica, runbooks y despliegues. | 10 |
+| Marcos Escribano | Developer | Diseño e implementación de código, desarrollo de pruebas unitarias y de integración, refactorización, estimación técnica de tareas, documentación de componentes y cumplimiento de la Definition of Done (DoD). | 5 |
 
 ### 5.3. Acuerdos de Trabajo del Equipo (Working Agreements)
 * **Comunicación:** Canales oficiales (Discord/Teams/WhatsApp) y horario de respuesta.
