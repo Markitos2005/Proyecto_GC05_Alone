@@ -188,7 +188,7 @@ Como usuario, quiero iniciar sesión mediante una cuenta de Microsoft (preferibl
 #### Criterios de aceptación
 
 - **US-007-AC-01:** El usuario puede iniciar el flujo OAuth desde la aplicación seleccionando un proveedor configurado.
-- **US-007-AC-02:** Una autenticación válida en Google o GitHub crea o vincula una cuenta local sin duplicar la identidad del usuario.
+- **US-007-AC-02:** Una autenticación válida en Microsoft crea o vincula una cuenta local sin duplicar la identidad del usuario.
 - **US-007-AC-03:** La cuenta OAuth queda asociada al perfil y permisos correspondientes.
 - **US-007-AC-04:** La aplicación no almacena la contraseña del proveedor externo.
 - **US-007-AC-05:** El sistema rechaza respuestas OAuth inválidas, canceladas o caducadas con un mensaje comprensible.

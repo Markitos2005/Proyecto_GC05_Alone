@@ -77,7 +77,7 @@ Como Usuario que ha solicitado una recuperación, quiero recibir un aviso cuando
 - **Prioridad:** Must
 - **Estimación:** 6 h-p
 - **Incertidumbre:** Media
-- **Predecesoras:** US-012, US-018
+- **Predecesoras:** US-011, US-018
 - **Plan inicial:** IT-05
 
 #### Criterios de aceptación
