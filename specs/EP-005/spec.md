@@ -11,7 +11,7 @@ Como Administrador de Lost&Found UEx, quiero gestionar las cuentas, los roles, l
 - **Estimación:** 31 h-p
 - **Incertidumbre:** Media
 - **Predecesoras:** EP-001, EP-002, EP-003, EP-004
-- **Plan inicial:** IT-05
+- **Plan inicial:** IT-04, IT-05 e IT-06
 
 La administración diferencia exactamente los roles Usuario, Conserje y Administrador. Cada Conserje debe estar asignado a una facultad concreta y solo puede gestionar hallazgos y solicitudes asociados a ella. La administración no sustituye la validación ordinaria de solicitudes por parte del Conserje correspondiente.
 

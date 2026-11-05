@@ -8,14 +8,46 @@ Como usuario de Lost&Found UEx, quiero solicitar formalmente la recuperación de
 - **Alcance relacionado:** S-04 — Solicitud y validación de recuperación
 - **Indicadores relacionados:** M-03 — Solicitud de recuperación; M-05 — Roles y alcance
 - **Prioridad:** Must
-- **Estimación:** 31 h-p
+- **Estimación:** 43 h-p
 - **Incertidumbre:** Media
 - **Predecesoras:** EP-001, EP-002
-- **Plan inicial:** IT-04
+- **Plan inicial:** IT-04, IT-05 e IT-06
 
 La recuperación formal comienza desde un hallazgo activo. La aplicación almacena la solicitud, permite su revisión por un Conserje de la facultad correspondiente y registra la decisión. Esta épica no gestiona la entrega física ni permite contacto directo entre Usuarios.
 
 ## Historias de usuario
+
+### US-011 — Revisión y validación de solicitudes de recuperación
+
+Como conserje asignado a la facultad de un hallazgo, quiero revisar y validar o rechazar las solicitudes de recuperación asociadas a ese hallazgo, con la información aportada por el usuario, para decidir si la solicitud procede y comunicar el resultado.
+
+- **Prioridad:** Should
+- **Estimación:** 12 h-p
+- **Incertidumbre:** Media
+- **Predecesoras:** US-018, US-025
+- **Plan inicial:** IT-05
+
+#### Criterios de aceptación
+
+- **US-011-AC-01:** El Conserje puede consultar únicamente las solicitudes de recuperación en estado `Pendiente` asociadas a hallazgos de su facultad asignada.
+- **US-011-AC-02:** Cada solicitud muestra el hallazgo relacionado y la información aportada por el Usuario para demostrar la propiedad, sin exponerla en listados o vistas públicas.
+- **US-011-AC-03:** El Conserje puede revisar el detalle de una solicitud sin modificar los datos aportados por el Usuario ni los rasgos identificativos privados del hallazgo.
+- **US-011-AC-04:** El Conserje puede validar una solicitud `Pendiente`; al hacerlo, la solicitud pasa a `Validada` y el hallazgo relacionado puede pasar a `Devuelto` cuando se complete la entrega.
+- **US-011-AC-05:** El Conserje puede rechazar una solicitud `Pendiente` e indicar un motivo comprensible; al hacerlo, la solicitud pasa a `Rechazada`.
+- **US-011-AC-06:** Una solicitud `Validada` o `Rechazada` no puede volver a `Pendiente` ni recibir una segunda decisión mediante esta funcionalidad.
+- **US-011-AC-07:** Después de validar o rechazar una solicitud, el sistema registra un aviso dirigido al Usuario con el resultado y, cuando corresponda, el motivo o las instrucciones de recogida definidas por el Conserje.
+- **US-011-AC-08:** Cada decisión registra la solicitud afectada, el Conserje que la toma, la fecha, el estado anterior, el estado nuevo y el motivo cuando exista.
+- **US-011-AC-09:** Un Usuario, un Conserje de otra facultad o cualquier cuenta sin permisos no puede consultar la información privada ni validar o rechazar la solicitud.
+- **US-011-AC-10:** Si la solicitud no existe, ya no está `Pendiente` o los datos de la decisión no son válidos, el sistema informa del error y no modifica la solicitud.
+
+#### Verificación y restricciones
+
+- Verificar la consulta de solicitudes por facultad con solicitudes pendientes de la facultad propia, de otra facultad y sin solicitudes.
+- Verificar la separación entre información pública del hallazgo e información privada de la solicitud y del hallazgo.
+- Verificar las transiciones `Pendiente → Validada` y `Pendiente → Rechazada`, incluido el motivo obligatorio al rechazar.
+- Verificar que se genera un aviso al Usuario y que se conserva la trazabilidad de cada decisión.
+- Verificar el rechazo de accesos y decisiones por Usuarios, Conserjes de otra facultad y cuentas sin permisos.
+- Cumplir G-03, S-04, R-04, R-05, R-07, R-08, R-09, R-11 y las decisiones D-04, D-07 y D-08.
 
 ### US-018 — Solicitar la recuperación de un hallazgo
 
@@ -130,7 +162,7 @@ Como Usuario autenticado, quiero reportar un hallazgo o un aviso de pérdida que
 - **Prioridad:** Should
 - **Estimación:** 5 h-p
 - **Incertidumbre:** Media
-- **Predecesoras:** US-014, US-015
+- **Predecesoras:** US-009, US-014
 - **Plan inicial:** IT-06
 
 #### Criterios de aceptación
@@ -159,7 +191,7 @@ Como Usuario autenticado, quiero reportar un hallazgo o un aviso de pérdida que
 | Objetivos | G-03 — Recuperación validada; G-05 — Acceso y administración controlados |
 | Alcance | S-04 — Solicitud y validación de recuperación |
 | Indicadores | M-03 — Solicitud de recuperación; M-05 — Roles y alcance |
-| Historias | US-018, US-019, US-020, US-021 y US-022 |
+| Historias | US-011, US-018, US-019, US-020, US-021 y US-022 |
 | Estados | Solicitud: `Pendiente → Validada` o `Pendiente → Rechazada`; aviso: `Emitido`; reporte: `Pendiente` |
 | Información privada | Información justificativa, motivos de rechazo, instrucciones de recogida y datos restringidos |
 | Separación funcional | Los avisos de pérdida de EP-003 no crean solicitudes ni participan en la validación |

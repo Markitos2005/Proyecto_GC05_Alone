@@ -151,7 +151,7 @@ Como usuario autenticado, quiero cambiar mi contraseña desde mi perfil, para ma
 - **Prioridad:** Should
 - **Estimación:** 4 h-p
 - **Incertidumbre:** Baja
-- **Predecesoras:** US-001, US-002, US-004
+- **Predecesoras:** US-001, US-002, US-005
 - **Plan inicial:** IT-02
 
 #### Criterios de aceptación
@@ -182,7 +182,7 @@ Como usuario, quiero iniciar sesión mediante una cuenta de Microsoft (preferibl
 - **Prioridad:** Could
 - **Estimación:** 9 h-p
 - **Incertidumbre:** Alta
-- **Predecesoras:** US-002, US-004
+- **Predecesoras:** US-002, US-005
 - **Plan inicial:** IT-02
 
 #### Criterios de aceptación
@@ -208,9 +208,9 @@ Como usuario, quiero iniciar sesión mediante una cuenta de Microsoft (preferibl
 | Objetivo | G-05 — Acceso controlado |
 | Alcance | S-01 — Gestión de cuenta y autenticación |
 | Indicador | M-05 — El 100 % de las pruebas definidas para autenticación y autorización producen el comportamiento esperado |
-| Historias | US-001, US-002, US-003, US-004 y US-005 |
+| Historias | US-001, US-002, US-003, US-004,  US-005, US-006 y US-007 |
 | Iteraciones | IT-01 e IT-02 |
 | Roles | Usuario y Administrador |
 | Autenticación principal | Correo electrónico y contraseña |
-| Autenticación alternativa | OAuth con Google o GitHub, prioridad Could |
+| Autenticación alternativa | OAuth con Microsoft, prioridad Could |
 | Restricciones | R-03, R-04, R-05, R-06, R-08, R-09 y R-11 |

@@ -11,7 +11,7 @@ Como usuario de Lost&Found UEx, quiero publicar y consultar avisos sobre objetos
 - **Estimación:** 24 h-p
 - **Incertidumbre:** Media
 - **Predecesoras:** EP-001
-- **Plan inicial:** IT-03
+- **Plan inicial:** IT-03 e IT-04
 
 El feed de pérdidas es independiente del flujo formal de recuperación. Publicar un aviso no crea un hallazgo, no inicia una solicitud de recuperación, no modifica publicaciones de Conserjería y no obliga a ningún Conserje a revisar el aviso.
 

@@ -2,13 +2,13 @@
 
 ## Épica
 
-Como conserje, quiero publicar, explorar y gestionar objetos encontrados o depositados en conserjería, para facilitar que sus propietarios los identifiquen y puedan iniciar el contacto para recuperarlos.
+Como conserje, quiero publicar, explorar y gestionar objetos encontrados o depositados en conserjería, para facilitar que sus propietarios los identifiquen y puedan iniciar una solicitud formal de recuperación que será revisada por el conserje autorizado.
 
 - **Objetivos relacionados:** G-01, G-02
 - **Alcance relacionado:** S-02 — Feed de hallazgos
 - **Indicadores relacionados:** M-01 — Usuarios que completan el registro de un hallazgo; M-02 — Usuarios que encuentran un objeto mediante búsqueda
 - **Prioridad:** Must
-- **Estimación:** 46 h-p 
+- **Estimación:** 34 h-p 
 - **Incertidumbre:** Media
 - **Predecesoras:** EP-001
 - **Plan inicial:** IT-02 e IT-03
@@ -22,7 +22,7 @@ Como conserje de la UEX autenticado en el sistema, quiero publicar un objeto enc
 - **Prioridad:** Must
 - **Estimación:** 14 h-p
 - **Incertidumbre:** Media
-- **Predecesoras:** US-003, US-005
+- **Predecesoras:** US-002
 - **Plan inicial:** IT-02
 
 #### Criterios de aceptación
@@ -94,39 +94,6 @@ Como conserje que ha publicado un hallazgo, quiero editar sus datos, marcarlo co
 - Verificar que los hallazgos Devueltos y Retirados no aparecen en el feed público y conservan su historial.
 - Cumplir R-04, R-05, R-07, R-08, R-09 y D-06.
 
-### US-011 — Revisión y validación de solicitudes de recuperación
-
-Como conserje asignado a la facultad de un hallazgo, quiero revisar y validar o rechazar las solicitudes de recuperación asociadas a ese hallazgo, con la información aportada por el usuario, para decidir si la solicitud procede y comunicar el resultado.
-
-- **Prioridad:** Should
-- **Estimación:** 12 h-p
-- **Incertidumbre:** Media
-- **Predecesoras:** US-009, US-010
-- **Plan inicial:** IT-05
-
-#### Criterios de aceptación
-
-- **US-011-AC-01:** El Conserje puede consultar únicamente las solicitudes de recuperación en estado `Pendiente` asociadas a hallazgos de su facultad asignada.
-- **US-011-AC-02:** Cada solicitud muestra el hallazgo relacionado y la información aportada por el Usuario para demostrar la propiedad, sin exponerla en listados o vistas públicas.
-- **US-011-AC-03:** El Conserje puede revisar el detalle de una solicitud sin modificar los datos aportados por el Usuario ni los rasgos identificativos privados del hallazgo.
-- **US-011-AC-04:** El Conserje puede validar una solicitud `Pendiente`; al hacerlo, la solicitud pasa a `Validada` y el hallazgo relacionado puede pasar a `Devuelto` cuando se complete la entrega.
-- **US-011-AC-05:** El Conserje puede rechazar una solicitud `Pendiente` e indicar un motivo comprensible; al hacerlo, la solicitud pasa a `Rechazada`.
-- **US-011-AC-06:** Una solicitud `Validada` o `Rechazada` no puede volver a `Pendiente` ni recibir una segunda decisión mediante esta funcionalidad.
-- **US-011-AC-07:** Después de validar o rechazar una solicitud, el sistema registra un aviso dirigido al Usuario con el resultado y, cuando corresponda, el motivo o las instrucciones de recogida definidas por el Conserje.
-- **US-011-AC-08:** Cada decisión registra la solicitud afectada, el Conserje que la toma, la fecha, el estado anterior, el estado nuevo y el motivo cuando exista.
-- **US-011-AC-09:** Un Usuario, un Conserje de otra facultad o cualquier cuenta sin permisos no puede consultar la información privada ni validar o rechazar la solicitud.
-- **US-011-AC-10:** Si la solicitud no existe, ya no está `Pendiente` o los datos de la decisión no son válidos, el sistema informa del error y no modifica la solicitud.
-
-#### Verificación y restricciones
-
-- Verificar la consulta de solicitudes por facultad con solicitudes pendientes de la facultad propia, de otra facultad y sin solicitudes.
-- Verificar la separación entre información pública del hallazgo e información privada de la solicitud y del hallazgo.
-- Verificar las transiciones `Pendiente → Validada` y `Pendiente → Rechazada`, incluido el motivo obligatorio al rechazar.
-- Verificar que se genera un aviso al Usuario y que se conserva la trazabilidad de cada decisión.
-- Verificar el rechazo de accesos y decisiones por Usuarios, Conserjes de otra facultad y cuentas sin permisos.
-- Cumplir G-03, S-04, R-04, R-05, R-07, R-08, R-09, R-11 y las decisiones D-04, D-07 y D-08.
-
-
 ## Trazabilidad de la épica
 
 | Elemento | Referencia |
@@ -135,7 +102,7 @@ Como conserje asignado a la facultad de un hallazgo, quiero revisar y validar o 
 | Objetivos | G-01 — Registro y consulta de objetos; G-02 — Contacto para la recuperación |
 | Alcance | S-02 — Feed de hallazgos |
 | Indicadores | M-01 — Registro de un hallazgo; M-02 — Localización de publicaciones mediante búsqueda y filtros |
-| Historias | US-008, US-009, US-010 y US-011 |
+| Historias | US-008, US-009 y US-010 |
 | Estados | Hallazgo: Activo → Devuelto o Retirado |
 | Información pública | Categoría, descripción pública, ubicación permitida, fecha, imágenes públicas y estado |
 | Información privada | Rasgos identificativos y datos restringidos del hallazgo |
