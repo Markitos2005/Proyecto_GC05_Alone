@@ -63,16 +63,17 @@ Se propone ampliar el modelo `usuarios` sin crear una identidad independiente.
 
 ### Campos del perfil
 
-| Campo | Tipo propuesto | Editable | Visibilidad |
+| Campo | Tipo propuesto | Editable | Obligatorio |
 |---|---|---|---|
-| id | UUID | No | Solo propietario |
-| email | VARCHAR(254) | No en US-005 | Solo propietario |
-| nombre | VARCHAR(100) | Sí | Solo propietario |
-| telefono | VARCHAR(16) | Sí | Solo propietario |
-| rol | VARCHAR(20) | No | Solo propietario |
-| activo | BOOLEAN | No | Uso interno |
-| created_at | TIMESTAMP | No | Uso interno |
-| updated_at | TIMESTAMP | No | Uso interno |
+| id | UUID | No | Sí |
+| email | VARCHAR(254) | No | Sí |
+| nombre | VARCHAR(100) | Sí | Sí |
+| apellidos | VARCHAR(150) | Sí | Sí |
+| telefono | VARCHAR(12) | Sí | No |
+| rol | VARCHAR(20) | No | Sí |
+| activo | BOOLEAN | No | Sí |
+| created_at | TIMESTAMP | No | Sí |
+| updated_at | TIMESTAMP | No | Sí |
 
 ### Decisiones técnicas
 
@@ -80,7 +81,9 @@ Se propone ampliar el modelo `usuarios` sin crear una identidad independiente.
 
 **Correo electrónico:** se mantendrá como dato de identidad y no podrá modificarse mediante los endpoints de perfil definidos para US-005.
 
-**Nombre:** se propone incluir un nombre visible como campo opcional y editable, sujeto a los requisitos definitivos del producto.
+**Nombre:** campo obligatorio y editable por el propietario del perfil. No podrá guardarse vacío.
+
+**Apellidos:** campo obligatorio y editable por el propietario del perfil. No podrán guardarse vacíos.
 
 **Teléfono:** será opcional. El usuario podrá añadirlo, modificarlo o eliminarlo.
 
@@ -94,30 +97,47 @@ El modelo deberá mantener la compatibilidad con las publicaciones y relaciones 
 
 ## 5. Formato y validación del teléfono
 
-Se adopta como formato de almacenamiento el estándar internacional E.164.
+Según las aclaraciones del Product Owner, el teléfono
+debe contener 9 cifras y puede incluir opcionalmente
+el prefijo internacional +34.
 
-### Reglas propuestas
+### Reglas confirmadas
 
-- El teléfono será opcional.
-- Podrá empezar por el símbolo `+`, seguido del código internacional de país y el número.
-- Se admitirán hasta 15 dígitos después del símbolo `+`.
-- No se almacenarán espacios, guiones ni paréntesis en la representación normalizada.
-- Se rechazará cualquier número que no cumpla las reglas de validación.
-- El usuario podrá eliminar el teléfono y dejar el campo en `NULL`.
+- El teléfono es un campo opcional.
+- Se admiten números de 9 cifras.
+- Se permite añadir +34 delante del número.
+- No es obligatorio incluir +34.
+- No es necesario admitir números de otros países.
+- El usuario puede añadir, modificar o eliminar su teléfono.
 
 ### Ejemplos
 
-| Entrada | Resultado |
+| Teléfono | Resultado |
 |---|---|
-| +34612345678 | Válido si supera la comprobación del número |
-| +441234567890 | Válido si supera la comprobación del número |
-| 612345678 | Requiere normalización o indicación de país |
+| 612345678 | Válido |
+| +34612345678 | Válido |
+| 912345678 | Válido |
+| 12345 | Inválido |
+| +441234567890 | Inválido |
 | abc123 | Inválido |
-| Campo vacío | Permitido como ausencia de teléfono |
+| null | Permitido: sin teléfono |
 
-Se propone utilizar una biblioteca especializada, como `libphonenumber-js`, para validar y normalizar números telefónicos.
+### Validación técnica
 
-No se recomienda confiar exclusivamente en una expresión regular, ya que la validez de los números depende del país.
+Se propone utilizar la siguiente expresión regular:
+
+`^(?:\+34)?[0-9]{9}$`
+
+
+La expresión regular se aplicará únicamente cuando el teléfono contenga un valor.
+Si el usuario envía `telefono: null`, el sistema interpretará que desea eliminar su teléfono de contacto.
+En ese caso no se aplicará la expresión regular y el valor se almacenará como NULL en la base de datos.
+
+
+Esta expresión comprueba que el número tenga exactamente
+9 cifras y que pueda comenzar opcionalmente por +34.
+
+La validación se realizará en el servidor.
 
 ## 6. Endpoint de consulta del perfil
 
@@ -141,8 +161,9 @@ Ejemplo:
 {
   "id": "uuid-del-usuario",
   "email": "usuario@example.com",
-  "nombre": "Usuario Ejemplo",
-  "telefono": "+34612345678",
+  "nombre": "Usuario",
+  "apellidos": "Ejemplo García",
+  "telefono": "612345678",
   "rol": "USUARIO"
 }
 ```
@@ -175,8 +196,19 @@ Se utilizará `PATCH` porque permite modificar únicamente los campos indicados.
 
 Se permitirá modificar:
 
-- `nombre`, si se confirma como campo funcional del perfil.
-- `telefono`.
+- `nombre`, campo obligatorio.
+- `apellidos`, campo obligatorio.
+- `telefono`, campo opcional.
+
+### Actualización parcial de campos
+
+El endpoint PATCH permitirá actualizar únicamente los campos incluidos en la petición.
+
+Aunque nombre y apellidos son obligatorios en el perfil, no será necesario enviarlos en todas las peticiones de actualización.
+
+Si se incluye nombre o apellidos, su valor no podrá ser nulo, vacío ni contener únicamente espacios.
+
+Los campos omitidos conservarán su valor anterior.
 
 No se permitirá modificar directamente:
 
@@ -190,8 +222,9 @@ No se permitirá modificar directamente:
 
 ```json
 {
-  "nombre": "Usuario Ejemplo",
-  "telefono": "+34612345678"
+  "nombre": "Usuario",
+  "apellidos": "Ejemplo García",
+  "telefono": "612345678"
 }
 ```
 
@@ -205,8 +238,9 @@ No se permitirá modificar directamente:
   "profile": {
     "id": "uuid-del-usuario",
     "email": "usuario@example.com",
-    "nombre": "Usuario Ejemplo",
-    "telefono": "+34612345678"
+    "nombre": "Usuario",
+    "apellidos": "Ejemplo García",
+    "telefono": "612345678"
   }
 }
 ```
@@ -327,50 +361,85 @@ Después de cerrar sesión, el usuario no podrá consultar ni modificar su perfi
 
 El cambio de contraseña será una funcionalidad independiente y no formará parte de los campos editables de US-005.
 
+
 ## 13. Casos de prueba previstos
+
+Se deberán verificar los siguientes escenarios:
 
 | Caso de prueba | Resultado esperado |
 |---|---|
 | Consultar perfil autenticado | HTTP 200 |
 | Consultar perfil sin sesión | HTTP 401 |
-| Modificar nombre permitido | Actualización correcta |
-| Añadir teléfono válido | Teléfono almacenado |
+| Modificar nombre válido | Actualización correcta |
+| Modificar apellidos válidos | Actualización correcta |
+| Nombre vacío | HTTP 400 |
+| Apellidos vacíos | HTTP 400 |
+| Añadir teléfono de 9 cifras (612345678) | Teléfono aceptado |
+| Añadir teléfono con +34 (+34612345678) | Teléfono aceptado |
+| Introducir teléfono de menos de 9 cifras | HTTP 400 |
+| Introducir teléfono de más de 9 cifras sin prefijo | HTTP 400 |
+| Introducir teléfono con prefijo extranjero | HTTP 400 |
+| Introducir caracteres no numéricos en el teléfono | HTTP 400 |
 | Cambiar teléfono | Nuevo valor almacenado |
 | Eliminar teléfono | Valor NULL |
-| Introducir teléfono inválido | HTTP 400 |
 | Introducir datos demasiado largos | HTTP 400 |
-| Modificar rol | Operación rechazada |
-| Modificar identificador | Operación rechazada |
-| Modificar perfil ajeno | Acceso denegado |
-| Consultar tras cerrar sesión | HTTP 401 |
-| Editar perfil | Identidad y publicaciones conservadas |
+| Intentar modificar el correo electrónico | Operación rechazada |
+| Intentar modificar el rol | Operación rechazada |
+| Intentar modificar el identificador | Operación rechazada |
+| Intentar modificar un perfil ajeno | Acceso denegado |
+| Consultar perfil después de cerrar sesión | HTTP 401 |
+| Editar perfil | Identidad, rol y publicaciones conservadas |
 | Consultar teléfono sin autorización | Información no revelada |
 
 Las pruebas deberán utilizar únicamente datos ficticios o sintéticos.
+
+Se comprobará especialmente que el nombre y los apellidos sean obligatorios, que el teléfono acepte exactamente 9 cifras con el prefijo +34 opcional y que ningún usuario pueda consultar o modificar el perfil privado de otro.
+
 
 ## 14. Decisiones técnicas adoptadas y aspectos pendientes
 
 ### Decisiones adoptadas
 
-- Utilizar Node.js y Express.js.
-- Asociar el perfil al UUID de usuario.
-- Mantener el correo y el rol fuera de los campos editables de US-005.
-- Permitir añadir, modificar y eliminar el teléfono.
-- Proponer E.164 como formato de almacenamiento del teléfono.
-- Proteger la consulta y edición mediante sesiones.
-- Utilizar `GET /api/profile/me` para consultar el perfil.
-- Utilizar `PATCH /api/profile/me` para actualizarlo.
-- Impedir operaciones sobre perfiles ajenos.
+- Utilizar JavaScript con Node.js y Express.js.
+- Asociar el perfil al identificador UUID del usuario.
+- Mantener el correo electrónico como campo no editable.
+- Establecer el nombre como campo obligatorio y editable.
+- Establecer los apellidos como campo obligatorio y editable.
+- Permitir añadir, modificar y eliminar el teléfono de contacto.
+- Admitir teléfonos de exactamente 9 cifras.
+- Permitir opcionalmente el prefijo internacional +34.
+- Aceptar números como 612345678 sin exigir el prefijo +34.
+- No requerir compatibilidad con números de otros países.
+- Validar el teléfono en el backend mediante la expresión regular `^(?:\+34)?[0-9]{9}$`.
+- Utilizar GET /api/profile/me para consultar el perfil.
+- Utilizar PATCH /api/profile/me para actualizar los campos permitidos.
+- Proteger las operaciones mediante sesiones autenticadas.
+- Impedir que un usuario consulte o modifique el perfil privado de otro usuario.
 - Mantener el teléfono privado por defecto.
+- Impedir la modificación del rol y del identificador desde el perfil.
+- Conservar la identidad y las publicaciones asociadas al usuario.
 
 ### Aspectos pendientes de integración
 
-- Confirmar si el nombre forma parte de los campos editables del producto.
-- Confirmar el modelo físico definitivo de usuarios.
-- Elegir la biblioteca de validación telefónica.
+- Confirmar el modelo físico definitivo de la base de datos.
+- Incorporar los campos nombre y apellidos a la implementación del perfil.
 - Adaptar los endpoints a la estructura real del backend.
+- Confirmar la configuración definitiva de autenticación y autorización.
 - Definir qué operaciones de contacto podrán mostrar el teléfono a terceros autorizados.
 - Coordinar la implementación de SCRUM-91 y las pruebas de SCRUM-92.
+
+### Aclaraciones del Product Owner incorporadas
+
+El diseño se ha actualizado para reflejar las decisiones funcionales establecidas en US-005:
+
+1. Los campos editables son nombre, apellidos y teléfono.
+2. El nombre y los apellidos son obligatorios.
+3. El teléfono es opcional y debe contener 9 cifras.
+4. Se permite añadir el prefijo +34, pero no es obligatorio.
+5. No es necesario admitir números de otros países.
+6. El correo electrónico no puede modificarse desde el perfil.
+
+Estas aclaraciones prevalecen sobre las propuestas anteriores del diseño técnico.
 
 ## 15. Conclusión
 
