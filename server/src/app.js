@@ -2,6 +2,8 @@ import express from 'express';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import { fileURLToPath } from 'node:url';
+import { logoutController } from './controllers/logout.js';
+
 
 import {
   createRegistrationService,
@@ -50,6 +52,49 @@ export function createApp({
     next();
   }
 
+  // Protección CSRF mediante lista de orígenes permitidos.
+  function requireSameOrigin(req, res, next) {
+    const origin = req.get('Origin');
+    const fetchSite = req.get('Sec-Fetch-Site');
+
+    const reject = () =>
+      res.status(403).json({
+        message: 'Origen de la petición no permitido.',
+      });
+
+    // Nunca permitir peticiones cross-site.
+    if (fetchSite === 'cross-site') {
+      return reject();
+    }
+
+    // Orígenes expresamente autorizados.
+    const allowedOrigins = new Set([
+      `${req.protocol}://${req.get('host')}`,
+      ...(process.env.NODE_ENV !== 'production'
+        ? ['http://localhost:5173']
+        : []),
+      ...(process.env.APP_ORIGIN
+        ? [process.env.APP_ORIGIN]
+        : []),
+    ]);
+
+    if (origin) {
+      if (!allowedOrigins.has(origin)) {
+        return reject();
+      }
+
+      return next();
+    }
+
+    // Sin Origin, exigir same-origin.
+    if (fetchSite === 'same-origin') {
+      return next();
+    }
+
+    return reject();
+  }
+
+
   // Registro de usuarios: conservar la funcionalidad de Marcos.
   app.post(
     '/api/auth/register',
@@ -91,6 +136,22 @@ export function createApp({
       next();
     },
     loginController(createLoginService(users)),
+  );
+
+  // Cierre de sesión: SCRUM-39.
+  app.post(
+    '/api/auth/logout',
+    requireSameOrigin,
+    (req, res, next) => {
+      if (!req.session) {
+        return res.status(503).json({
+          message: 'El servicio de autenticación no está disponible.',
+        });
+      }
+
+      next();
+    },
+    logoutController(),
   );
 
   app.use('/api', (_req, res) => {
