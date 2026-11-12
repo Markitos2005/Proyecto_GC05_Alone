@@ -44,6 +44,8 @@ Como nuevo usuario, quiero registrarme con mi correo electrónico y contraseña,
 
 - La contraseña debe tener al menos 8 caracteres, con al menos una letra y un número.
 - Se acepta cualquier correo electrónico válido; no se limita a los correos de la UEx.
+- No se puede registrar un correo que ya pertenece a una cuenta, aunque esté desactivada. Esa persona debe pedir al administrador que reactive su cuenta.
+- Validado por el Product Owner el 12/11/2026: cumple los criterios de aceptación.
 
 ### US-002 — Inicio de sesión con credenciales locales
 
