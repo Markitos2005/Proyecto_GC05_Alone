@@ -17,16 +17,18 @@ function fixture() {
   };
   return { records, users, app: createApp({ users, registrationLimit: 100 }) };
 }
-const valid = { email: 'persona@example.com', password: 'Prueba1234' };
+const valid = { nombre: 'Persona', apellidos: 'Ficticia Ejemplo', email: 'persona@example.com', password: 'Prueba1234' };
 
 describe('US-001: contrato de registro', () => {
   it('201, correo normalizado, UUID, rol fijo, cuenta activa y hash verificable', async () => {
     const { app, records } = fixture();
-    const result = await request(app).post('/api/auth/register').send({ ...valid, email: ' Persona@EXAMPLE.com ', rol: 'ADMINISTRADOR', activo: false });
+    const result = await request(app).post('/api/auth/register').send({ ...valid, nombre: '  Persona ', email: ' Persona@EXAMPLE.com ', rol: 'ADMINISTRADOR', activo: false });
     expect(result.status).toBe(201);
     expect(result.body.user).toEqual({ id: expect.stringMatching(/^[0-9a-f-]{36}$/), email: valid.email, rol: 'USUARIO' });
     const row = records.get(valid.email);
     expect(row.activo).toBe(true);
+    expect(row.nombre).toBe('Persona');
+    expect(row.apellidos).toBe('Ficticia Ejemplo');
     expect(row.passwordHash).toMatch(/^\$argon2id\$/);
     expect(await argon2.verify(row.passwordHash, valid.password)).toBe(true);
     expect(await argon2.verify(row.passwordHash, 'Otra1234')).toBe(false);
@@ -42,6 +44,9 @@ describe('US-001: contrato de registro', () => {
     { ...valid, email: ['a@example.com'] }, { ...valid, password: 12345678 },
     { ...valid, password: 'A123456' }, { ...valid, password: 'abcdefgh' },
     { ...valid, password: '12345678' }, { ...valid, password: 'A1' + 'a'.repeat(127) },
+    { email: valid.email, password: valid.password }, { ...valid, nombre: '   ' },
+    { ...valid, apellidos: '' }, { ...valid, nombre: 42 },
+    { ...valid, nombre: 'a'.repeat(101) }, { ...valid, apellidos: 'a'.repeat(151) },
   ])('400 sin persistencia ante entrada inválida: %j', async body => {
     const { app, records } = fixture();
     const result = await request(app).post('/api/auth/register').send(body);
@@ -52,7 +57,16 @@ describe('US-001: contrato de registro', () => {
 
   it('acepta el mínimo de ocho caracteres y dominios ajenos a UEx', async () => {
     const { app } = fixture();
-    expect((await request(app).post('/api/auth/register').send({ email: 'test@example.org', password: 'Abcdefg1' })).status).toBe(201);
+    expect((await request(app).post('/api/auth/register').send({ ...valid, email: 'test@example.org', password: 'Abcdefg1' })).status).toBe(201);
+  });
+
+  it('asocia cada error de nombre y apellidos a su campo', async () => {
+    const { app } = fixture();
+    const result = await request(app).post('/api/auth/register').send({ email: valid.email, password: valid.password });
+    expect(result.body.errors).toMatchObject({
+      nombre: 'El nombre es obligatorio.',
+      apellidos: 'Los apellidos son obligatorios.',
+    });
   });
 
   it('409 para duplicado normalizado, incluso cuenta desactivada', async () => {
