@@ -5,6 +5,13 @@ export function createUserRepository(pool) {
       const result = await pool.query('SELECT 1 FROM usuarios WHERE email = $1', [email]);
       return result.rowCount > 0;
     },
+    async findByEmail(email) {
+      const { rows } = await pool.query(
+        'SELECT id, email, password_hash, rol, activo FROM usuarios WHERE email = $1',
+        [email],
+      );
+      return rows[0] ?? null;
+    },
     async create({ id, email, passwordHash }) {
       const { rows } = await pool.query(
         `INSERT INTO usuarios (id, email, password_hash, rol, activo)
