@@ -40,6 +40,11 @@ Como nuevo usuario, quiero registrarme con mi correo electrónico y contraseña,
 - Utilizar únicamente datos ficticios o sintéticos durante las pruebas.
 - Cumplir R-03, R-04, R-05, R-06 y R-08.
 
+#### Aclaraciones del Product Owner
+
+- La contraseña debe tener al menos 8 caracteres, con al menos una letra y un número.
+- Se acepta cualquier correo electrónico válido; no se limita a los correos de la UEx.
+
 ### US-002 — Inicio de sesión con credenciales locales
 
 Como usuario registrado, quiero autenticarme con mi correo y contraseña, para acceder a las funciones del sistema.
