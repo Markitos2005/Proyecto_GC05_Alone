@@ -24,6 +24,16 @@ button:disabled { opacity: .65; cursor: wait; }
 p.error:empty { margin: 0; }
 @media (max-width: 480px) { main { margin-top: 1.5rem; } .card { padding: 1.25rem; } }
 
+/* US-006 · Cambio de contraseña en el perfil. */
+.password-change { border-top: 1px solid #cbd8d5; margin-top: 1.5rem; padding-top: 1.25rem; }
+.password-change h2 { margin: 0; font-size: 1.25rem; }
+.password-change form { margin-bottom: .5rem; }
+button.secondary { background: transparent; color: #085d50; border: 1px solid #085d50; }
+button.secondary:hover { background: #e8f2ef; }
+.checkbox { display: flex; align-items: center; gap: .5rem; font-weight: 400; }
+.checkbox input { width: auto; }
+.actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+
 a { color: #085d50; text-underline-offset: .2em; }
 .home { max-width: 72rem; }
 .home-header, .home-header nav, .hero-actions { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
