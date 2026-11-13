@@ -1,0 +1,27 @@
+# Integración continua: compila la aplicación y ejecuta las pruebas automáticas
+# en cada push y Pull Request a develop y main.
+# test:db y test:monolith quedan fuera porque necesitan PostgreSQL y .env.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Compilación y pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
