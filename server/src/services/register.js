@@ -10,10 +10,10 @@ export class RegistrationError extends Error {
   }
 }
 
-/** Reglas US-001. Solo se admiten email/password; el cliente no decide rol ni estado. */
+/** Reglas US-001. Solo se admiten email, password, nombre y apellidos; el cliente no decide rol ni estado. */
 export function createRegistrationService(users) {
   return async function register(body) {
-    const { email, password, errors } = validateRegistration(body);
+    const { email, password, nombre, apellidos, errors } = validateRegistration(body);
     if (Object.keys(errors).length) {
       throw new RegistrationError(400, 'Revisa los datos del formulario.', errors);
     }
@@ -21,7 +21,7 @@ export function createRegistrationService(users) {
     if (await users.emailExists(email)) throw duplicate();
     const passwordHash = await hashPassword(password);
     try {
-      const user = await users.create({ id: randomUUID(), email, passwordHash });
+      const user = await users.create({ id: randomUUID(), email, passwordHash, nombre, apellidos });
       // Lista explícita: jamás devolver hash aunque el repositorio amplíe su respuesta.
       return { id: user.id, email: user.email, rol: user.rol };
     } catch (error) {

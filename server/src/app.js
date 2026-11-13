@@ -17,6 +17,10 @@ import {
 } from './services/login.js';
 import { loginController } from './controllers/login.js';
 
+import { createProfileService, ProfileError } from './services/profile.js';
+import { profileController } from './controllers/profile.js';
+import { requireAuth } from './security/auth.js';
+
 /** App independiente del puerto y de la conexión a PostgreSQL. */
 export function createApp({
   users,
@@ -138,7 +142,22 @@ export function createApp({
     loginController(createLoginService(users)),
   );
 
-  // Cierre de sesión: SCRUM-39.
+
+  // Perfil del usuario autenticado: US-005.
+  const profile = profileController(createProfileService(users));
+  const authenticated = requireAuth(users);
+
+  app.get('/api/profile/me', authenticated, profile.get);
+
+  app.patch(
+    '/api/profile/me',
+    authenticated,
+    requireJson,
+    express.json({ limit: '16kb', strict: true }),
+    profile.update,
+  );
+
+  // Cierre de sesión: SCRUM-39 / US-003.
   app.post(
     '/api/auth/logout',
     requireSameOrigin,
@@ -172,10 +191,11 @@ export function createApp({
   });
 
   // Gestión centralizada de errores.
-  app.use((error, _req, res, _next) => {
+  app.use((error, req, res, _next) => {
     if (
       error instanceof RegistrationError ||
-      error instanceof LoginError
+      error instanceof LoginError ||
+      error instanceof ProfileError
     ) {
       return res.status(error.status).json({
         message: error.message,
@@ -199,7 +219,9 @@ export function createApp({
     logError();
 
     return res.status(500).json({
-      message: 'No se ha podido completar el registro.',
+      message: req.path === '/api/auth/register'
+        ? 'No se ha podido completar el registro.'
+        : 'No se ha podido completar la operación.',
     });
   });
 

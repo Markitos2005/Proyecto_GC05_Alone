@@ -44,7 +44,7 @@ test('Monolito compilado: arranque real, React, assets y registro HTTP con Postg
     assert.equal((await fetch(base + script)).status, 200);
     const result = await fetch(base + '/api/auth/register', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'monolito@example.com', password: 'Prueba1234' }),
+      body: JSON.stringify({ nombre: 'Monolito', apellidos: 'Ficticio', email: 'monolito@example.com', password: 'Prueba1234' }),
     });
     assert.equal(result.status, 201);
     assert.equal((await result.json()).user.rol, 'USUARIO');

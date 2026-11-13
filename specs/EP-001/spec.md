@@ -44,6 +44,8 @@ Como nuevo usuario, quiero registrarme con mi correo electrónico y contraseña,
 
 - La contraseña debe tener al menos 8 caracteres, con al menos una letra y un número.
 - Se acepta cualquier correo electrónico válido; no se limita a los correos de la UEx.
+- No se puede registrar un correo que ya pertenece a una cuenta, aunque esté desactivada. Esa persona debe pedir al administrador que reactive su cuenta.
+- Validado por el Product Owner el 12/11/2026: cumple los criterios de aceptación.
 
 ### US-002 — Inicio de sesión con credenciales locales
 
@@ -148,6 +150,11 @@ Como usuario autenticado, quiero editar mis datos y teléfono de contacto, para 
 - Verificar consulta, alta, edición y eliminación del teléfono, datos inválidos y aislamiento entre usuarios.
 - Verificar que el teléfono solo se muestra en las operaciones y vistas autorizadas.
 - Cumplir R-03, R-04, R-05, R-08, R-09 y R-11.
+
+#### Aclaraciones del Product Owner
+
+- Se pueden editar el nombre, los apellidos y el teléfono. El correo electrónico no se puede modificar.
+- El teléfono tiene 9 cifras y puede llevar delante el prefijo +34 de forma opcional.
 
 ### US-006 — Cambiar la contraseña desde el perfil
 
