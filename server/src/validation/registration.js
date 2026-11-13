@@ -16,6 +16,15 @@ export function validateRequiredText(value, { max, required }) {
   return { text };
 }
 
+/** Reglas de fortaleza comunes al registro y al cambio de contraseña. Devuelve el error o null. */
+export function passwordStrengthError(password) {
+  if ([...password].length < 8 || !/\p{L}/u.test(password) || !/[0-9]/.test(password)) {
+    return 'Usa al menos 8 caracteres, una letra y un número.';
+  }
+  if ([...password].length > 128) return 'La contraseña no puede superar los 128 caracteres.';
+  return null;
+}
+
 /** Valida tipos antes de procesarlos. No altera ni recorta la contraseña. */
 export function validateRegistration(body) {
   const errors = {};
@@ -26,11 +35,7 @@ export function validateRegistration(body) {
     errors.email = 'El formato del correo no es válido.';
   }
   if (!password) errors.password = 'La contraseña es obligatoria.';
-  else if ([...password].length < 8 || !/\p{L}/u.test(password) || !/[0-9]/.test(password)) {
-    errors.password = 'Usa al menos 8 caracteres, una letra y un número.';
-  } else if ([...password].length > 128) {
-    errors.password = 'La contraseña no puede superar los 128 caracteres.';
-  }
+  else if (passwordStrengthError(password)) errors.password = passwordStrengthError(password);
   const nombre = validateRequiredText(body?.nombre, TEXT_FIELDS.nombre);
   if (nombre.error) errors.nombre = nombre.error;
   const apellidos = validateRequiredText(body?.apellidos, TEXT_FIELDS.apellidos);

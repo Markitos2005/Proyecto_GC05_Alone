@@ -38,5 +38,33 @@ export function createUserRepository(pool) {
       );
       return rows[0] ?? null;
     },
+    /** Solo para comprobar credenciales en el servidor; nunca devolver este resultado al cliente. */
+    async findCredentialsById(id) {
+      const { rows } = await pool.query('SELECT id, password_hash, activo FROM usuarios WHERE id = $1', [id]);
+      return rows[0] ?? null;
+    },
+    /**
+     * US-006. En una sola sentencia (atómica): guarda el nuevo hash, registra el cambio
+     * y cierra las demás sesiones de la cuenta, conservando la actual.
+     */
+    async changePassword({ id, passwordHash, keepSessionId }) {
+      const { rows } = await pool.query(
+        `WITH actualizado AS (
+           UPDATE usuarios SET password_hash = $2, updated_at = CURRENT_TIMESTAMP
+           WHERE id = $1 RETURNING id
+         ), registro AS (
+           INSERT INTO cambios_contrasena (usuario_id) SELECT id FROM actualizado RETURNING id
+         ), cerradas AS (
+           DELETE FROM sesiones
+           WHERE sess->>'userId' = $4 AND sid <> $3 AND EXISTS (SELECT 1 FROM actualizado)
+           RETURNING sid
+         )
+         SELECT (SELECT count(*) FROM actualizado)::int AS actualizados,
+                (SELECT count(*) FROM cerradas)::int AS sesiones_cerradas`,
+        [id, passwordHash, keepSessionId ?? '', String(id)],
+      );
+      if (!rows[0]?.actualizados) return null;
+      return { sesionesCerradas: rows[0].sesiones_cerradas };
+    },
   };
 }
