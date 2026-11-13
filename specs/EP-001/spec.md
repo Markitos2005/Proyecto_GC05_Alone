@@ -71,6 +71,10 @@ Como usuario registrado, quiero autenticarme con mi correo y contraseña, para a
 - Verificar que las credenciales no aparecen en registros ni respuestas de la API.
 - Cumplir R-04, R-05, R-06, R-08 y R-09.
 
+#### Validación del Product Owner
+
+- Validado por el Product Owner el 13/11/2026: cumple los criterios de aceptación.
+
 ### US-003 — Cierre de sesión
 
 Como usuario autenticado, quiero cerrar mi sesión, para garantizar la seguridad de mi cuenta y evitar el acceso de otras personas en el mismo dispositivo.
