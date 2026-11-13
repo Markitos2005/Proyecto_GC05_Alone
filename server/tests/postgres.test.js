@@ -19,9 +19,11 @@ test('Registro HTTP con persistencia y unicidad reales en PostgreSQL', async () 
     // Esquema aleatorio aislado: nunca truncar ni borrar tablas de otras personas.
     await client.query(`CREATE SCHEMA "${schema}"`);
     await client.query(`SET search_path TO "${schema}"`);
-    await client.query(await readFile(new URL('../db/migrations/001-usuarios.sql', import.meta.url), 'utf8'));
+    for (const migration of ['001-usuarios.sql', '003-perfil.sql']) {
+      await client.query(await readFile(new URL(`../db/migrations/${migration}`, import.meta.url), 'utf8'));
+    }
     const app = createApp({ users: createUserRepository(client), registrationLimit: 100 });
-    const data = { email: ' Postgres@EXAMPLE.org ', password: 'Prueba1234' };
+    const data = { nombre: ' Persona ', apellidos: 'Postgres Ficticia', email: ' Postgres@EXAMPLE.org ', password: 'Prueba1234' };
     const result = await request(app).post('/api/auth/register').send(data);
     assert.equal(result.status, 201);
     const { rows } = await client.query('SELECT * FROM usuarios');
@@ -29,13 +31,16 @@ test('Registro HTTP con persistencia y unicidad reales en PostgreSQL', async () 
     assert.equal(rows[0].email, 'postgres@example.org');
     assert.equal(rows[0].rol, 'USUARIO');
     assert.equal(rows[0].activo, true);
+    assert.equal(rows[0].nombre, 'Persona');
+    assert.equal(rows[0].apellidos, 'Postgres Ficticia');
+    assert.equal(rows[0].telefono, null);
     assert.ok(rows[0].created_at);
     assert.ok(rows[0].updated_at);
     assert.match(rows[0].password_hash, /^\$argon2id\$/);
     assert.ok(await argon2.verify(rows[0].password_hash, data.password));
     assert.equal(result.body.user.password_hash, undefined);
     assert.equal((await request(app).post('/api/auth/register').send(data)).status, 409);
-    const simultaneous = { email: 'simultaneo@example.com', password: 'Prueba1234' };
+    const simultaneous = { ...data, email: 'simultaneo@example.com' };
     const responses = await Promise.all([request(app).post('/api/auth/register').send(simultaneous), request(app).post('/api/auth/register').send(simultaneous)]);
     assert.deepEqual(responses.map(r => r.status).sort(), [201, 409]);
     // También comprobar directamente la restricción, sin la consulta previa del servicio.

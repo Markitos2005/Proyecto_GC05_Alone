@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 
 /** Formulario US-001. No guarda credenciales en almacenamiento del navegador. */
 export function RegistrationForm() {
+  const [nombre, setNombre] = useState('');
+  const [apellidos, setApellidos] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -24,12 +26,14 @@ export function RegistrationForm() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ nombre, apellidos, email, password }),
       });
       const data = await response.json();
       if (response.ok) {
         setSuccess(true);
         setMessage('Cuenta creada correctamente. Ya está preparada para iniciar sesión.');
+        setNombre('');
+        setApellidos('');
         setEmail('');
       } else {
         setErrors(data.errors || {});
@@ -50,8 +54,18 @@ export function RegistrationForm() {
     <header><span className="brand">Lost&Found UEx</span><p>Objetos perdidos y encontrados</p></header>
     <section className="card" aria-labelledby="title">
       <h1 id="title">Crea tu cuenta</h1>
-      <p>Regístrate con tu correo electrónico y una contraseña.</p>
+      <p>Regístrate con tu nombre, tu correo electrónico y una contraseña.</p>
       <form onSubmit={submit} aria-busy={pending}>
+        <label htmlFor="nombre">Nombre</label>
+        <input id="nombre" name="nombre" autoComplete="given-name" required maxLength={100}
+          value={nombre} onChange={e => setNombre(e.target.value)} disabled={pending}
+          aria-invalid={Boolean(errors.nombre)} aria-describedby={errors.nombre ? 'nombre-error' : undefined} />
+        {errors.nombre && <p id="nombre-error" className="error">{errors.nombre}</p>}
+        <label htmlFor="apellidos">Apellidos</label>
+        <input id="apellidos" name="apellidos" autoComplete="family-name" required maxLength={150}
+          value={apellidos} onChange={e => setApellidos(e.target.value)} disabled={pending}
+          aria-invalid={Boolean(errors.apellidos)} aria-describedby={errors.apellidos ? 'apellidos-error' : undefined} />
+        {errors.apellidos && <p id="apellidos-error" className="error">{errors.apellidos}</p>}
         <label htmlFor="email">Correo electrónico</label>
         <input id="email" name="email" type="email" autoComplete="email" required maxLength={254}
           value={email} onChange={e => setEmail(e.target.value)} disabled={pending}

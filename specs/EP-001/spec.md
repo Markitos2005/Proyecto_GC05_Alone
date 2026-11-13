@@ -151,6 +151,11 @@ Como usuario autenticado, quiero editar mis datos y teléfono de contacto, para 
 - Verificar que el teléfono solo se muestra en las operaciones y vistas autorizadas.
 - Cumplir R-03, R-04, R-05, R-08, R-09 y R-11.
 
+#### Aclaraciones del Product Owner
+
+- Se pueden editar el nombre, los apellidos y el teléfono. El correo electrónico no se puede modificar.
+- El teléfono tiene 9 cifras y puede llevar delante el prefijo +34 de forma opcional.
+
 ### US-006 — Cambiar la contraseña desde el perfil
 
 Como usuario autenticado, quiero cambiar mi contraseña desde mi perfil, para mantener la seguridad de mi cuenta cuando sospeche que ha podido verse comprometida o quiera renovarla.

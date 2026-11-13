@@ -14,6 +14,7 @@ try {
   const migrations = [
     '001-usuarios.sql',
     '002-sesiones.sql',
+    '003-perfil.sql',
   ];
 
   for (const filename of migrations) {

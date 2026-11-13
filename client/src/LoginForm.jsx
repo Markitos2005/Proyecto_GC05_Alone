@@ -21,11 +21,12 @@ export function LoginForm() {
     setUser(null);
     try {
       // Punto de integración: api/login.js llama al endpoint definido en SCRUM-88.
-      // Cuando exista la pantalla privada, conectar aquí la navegación acordada.
       // El usuario en memoria no sustituye la validación de sesión del servidor.
       const authenticatedUser = await login({ email, password });
       setUser(authenticatedUser);
       setMessage('Inicio de sesión correcto.');
+      // US-005: la pantalla privada es el perfil; el servidor vuelve a comprobar la sesión.
+      window.location.hash = '#perfil';
     } catch (error) {
       setMessage(error.message);
     } finally {
