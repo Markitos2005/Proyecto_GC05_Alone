@@ -11,26 +11,43 @@ const ANA = '11111111-1111-4111-8111-111111111111';
 let actualHash;
 beforeAll(async () => { actualHash = await argon2.hash(actual, { type: argon2.argon2id }); });
 
-function fixture({ passwordHash } = {}) {
+function fixture({ passwordHash, passwordLimit = 100 } = {}) {
   const rows = new Map();
   rows.set(ANA, {
     id: ANA, email: 'ana@example.com', nombre: 'Ana', apellidos: 'Ficticia Uno', telefono: null,
     rol: 'USUARIO', activo: true, password_hash: passwordHash === undefined ? actualHash : passwordHash,
+    intentos_contrasena_fallidos: 0, bloqueada_hasta: 0,
   });
   const byEmail = (email) => [...rows.values()].find((row) => row.email === email) ?? null;
+  // Imita el contador y el bloqueo del repositorio real (ver postgres.test.js).
   const users = {
     findByEmail: async (email) => byEmail(email),
     findById: async (id) => rows.get(id) ?? null,
-    findCredentialsById: async (id) => rows.get(id) ?? null,
+    findCredentialsById: async (id) => {
+      const row = rows.get(id);
+      return row ? { ...row, bloqueada: row.bloqueada_hasta > Date.now() } : null;
+    },
+    registerFailedPasswordAttempt: vi.fn(async (id, { maxAttempts, lockSeconds }) => {
+      const row = rows.get(id);
+      row.intentos_contrasena_fallidos += 1;
+      if (row.intentos_contrasena_fallidos >= maxAttempts) {
+        row.intentos_contrasena_fallidos = 0;
+        row.bloqueada_hasta = Date.now() + lockSeconds * 1000;
+      }
+      return { bloqueada: row.bloqueada_hasta > Date.now() };
+    }),
+    resetFailedPasswordAttempts: vi.fn(async (id) => {
+      Object.assign(rows.get(id), { intentos_contrasena_fallidos: 0, bloqueada_hasta: 0 });
+    }),
     changePassword: vi.fn(async ({ id, passwordHash: hash }) => {
       const row = rows.get(id);
       if (!row) return null;
-      row.password_hash = hash;
+      Object.assign(row, { password_hash: hash, intentos_contrasena_fallidos: 0, bloqueada_hasta: 0 });
       return { sesionesCerradas: 0 };
     }),
   };
   const sessionMiddleware = session({ secret: 'clave-ficticia-solo-para-pruebas-de-contrasena', resave: false, saveUninitialized: false });
-  const app = createApp({ users, sessionMiddleware, loginLimit: 100 });
+  const app = createApp({ users, sessionMiddleware, loginLimit: 100, passwordLimit });
   return { app, users, ana: () => rows.get(ANA) };
 }
 
@@ -155,6 +172,80 @@ describe('SCRUM-45: cambio correcto (AC-05, AC-06, AC-10)', () => {
         expect(text).not.toContain(secret);
       }
     }
+  });
+});
+
+const LOCKED = { message: 'Demasiados intentos fallidos. Espera unos minutos antes de volver a intentarlo.' };
+const wrong = { actual: 'Incorrecta999', nueva, confirmacion: nueva };
+
+describe('SCRUM-99: contraseña actual (AC-03)', () => {
+  it('400 si la contraseña actual es incorrecta y no cambia nada', async () => {
+    const { app, users, ana } = fixture();
+    const result = await change(await loggedIn(app), wrong);
+    expect(result.status).toBe(400);
+    expect(result.body).toEqual({
+      message: 'Los datos del cambio de contraseña no son válidos.',
+      errors: { actual: 'La contraseña actual no es correcta.' },
+    });
+    expect(users.changePassword).not.toHaveBeenCalled();
+    expect(ana().password_hash).toBe(actualHash);
+  });
+});
+
+describe('SCRUM-99: límite de intentos fallidos consecutivos (AC-07)', () => {
+  it('bloquea la opción al quinto fallo consecutivo, incluso con la contraseña correcta', async () => {
+    const { app, users } = fixture();
+    const agent = await loggedIn(app);
+    for (let attempt = 1; attempt <= 4; attempt += 1) {
+      expect((await change(agent, wrong)).status).toBe(400);
+    }
+    const fifth = await change(agent, wrong);
+    expect(fifth.status).toBe(429);
+    expect(fifth.body).toEqual(LOCKED);
+
+    const meanwhile = await change(agent, valid);
+    expect(meanwhile.status).toBe(429);
+    expect(users.changePassword).not.toHaveBeenCalled();
+  });
+
+  it('cuenta los fallos por cuenta: iniciar otra sesión no reinicia el contador', async () => {
+    const { app } = fixture();
+    for (let attempt = 1; attempt <= 4; attempt += 1) {
+      expect((await change(await loggedIn(app), wrong)).status).toBe(400);
+    }
+    expect((await change(await loggedIn(app), wrong)).status).toBe(429);
+  });
+
+  it('un acierto con la contraseña actual reinicia la racha de fallos', async () => {
+    const { app, users } = fixture();
+    const agent = await loggedIn(app);
+    for (let attempt = 1; attempt <= 4; attempt += 1) await change(agent, wrong);
+    // Contraseña actual correcta aunque la nueva no se admita: corta la racha.
+    const same = await change(agent, { actual, nueva: actual, confirmacion: actual });
+    expect(same.status).toBe(400);
+    expect(users.resetFailedPasswordAttempts).toHaveBeenCalledTimes(1);
+    for (let attempt = 1; attempt <= 4; attempt += 1) {
+      expect((await change(agent, wrong)).status).toBe(400);
+    }
+  });
+
+  it('al terminar el bloqueo se puede cambiar con la contraseña correcta', async () => {
+    const { app, ana } = fixture();
+    const agent = await loggedIn(app);
+    for (let attempt = 1; attempt <= 5; attempt += 1) await change(agent, wrong);
+    expect((await change(agent, valid)).status).toBe(429);
+    ana().bloqueada_hasta = Date.now() - 1;
+    expect((await change(agent, valid)).status).toBe(200);
+  });
+
+  it('limita también las peticiones por IP', async () => {
+    const { app } = fixture({ passwordLimit: 2 });
+    const agent = await loggedIn(app);
+    await change(agent, wrong);
+    await change(agent, wrong);
+    const third = await change(agent, valid);
+    expect(third.status).toBe(429);
+    expect(third.body).toEqual({ message: 'Demasiados intentos. Inténtalo más tarde.' });
   });
 });
 

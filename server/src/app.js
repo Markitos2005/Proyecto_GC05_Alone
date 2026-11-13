@@ -29,6 +29,7 @@ export function createApp({
   sessionMiddleware,
   registrationLimit = 20,
   loginLimit = 10,
+  passwordLimit = 20,
   logError = () => console.error('Error interno de la aplicación.'),
 }) {
   const app = express();
@@ -159,10 +160,20 @@ export function createApp({
     profile.update,
   );
 
-  // Cambio de contraseña: SCRUM-45 / US-006.
+  // Cambio de contraseña: SCRUM-45 y SCRUM-99 / US-006.
+  // El bloqueo por cuenta está en el servicio; este límite por IP frena ataques masivos.
   const password = passwordController(createPasswordService(users));
   app.post(
     '/api/profile/me/password',
+    rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: passwordLimit,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      message: {
+        message: 'Demasiados intentos. Inténtalo más tarde.',
+      },
+    }),
     requireSameOrigin,
     authenticated,
     requireJson,

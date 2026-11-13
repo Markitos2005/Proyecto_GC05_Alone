@@ -65,7 +65,7 @@ test('US-006: cambio de contraseña atómico con registro y cierre de las demás
   try {
     await client.query(`CREATE SCHEMA "${schema}"`);
     await client.query(`SET search_path TO "${schema}"`);
-    for (const migration of ['001-usuarios.sql', '002-sesiones.sql', '003-perfil.sql', '004-cambios-contrasena.sql']) {
+    for (const migration of ['001-usuarios.sql', '002-sesiones.sql', '003-perfil.sql', '004-cambios-contrasena.sql', '005-bloqueo-contrasena.sql']) {
       await client.query(await readFile(new URL(`../db/migrations/${migration}`, import.meta.url), 'utf8'));
     }
     const users = createUserRepository(client);
@@ -84,9 +84,30 @@ test('US-006: cambio de contraseña atómico con registro y cierre de las demás
     await insertSession('ana-portatil', ana);
     await insertSession('beto-unica', beto);
 
+    // SCRUM-99 (AC-07): fallos consecutivos por cuenta y bloqueo calculado con la hora de la BD.
+    const limits = { maxAttempts: 3, lockSeconds: 900 };
+    assert.deepEqual(await users.registerFailedPasswordAttempt(ana, limits), { bloqueada: false });
+    assert.deepEqual(await users.registerFailedPasswordAttempt(ana, limits), { bloqueada: false });
+    assert.equal((await users.findCredentialsById(ana)).intentos_contrasena_fallidos, 2);
+    await users.resetFailedPasswordAttempts(ana);
+    assert.equal((await users.findCredentialsById(ana)).intentos_contrasena_fallidos, 0);
+    for (let attempt = 1; attempt <= 2; attempt += 1) await users.registerFailedPasswordAttempt(ana, limits);
+    assert.deepEqual(await users.registerFailedPasswordAttempt(ana, limits), { bloqueada: true });
+    const lockedAccount = await users.findCredentialsById(ana);
+    assert.equal(lockedAccount.bloqueada, true);
+    assert.equal(lockedAccount.intentos_contrasena_fallidos, 0);
+    assert.equal((await users.findCredentialsById(beto)).bloqueada, false);
+    // Un bloqueo vencido deja de aplicarse.
+    await client.query(`UPDATE usuarios SET contrasena_bloqueada_hasta = now() - interval '1 second' WHERE id = $1`, [beto]);
+    assert.equal((await users.findCredentialsById(beto)).bloqueada, false);
+
     const newHash = await argon2.hash('Distinta5678', { type: argon2.argon2id });
     const result = await users.changePassword({ id: ana, passwordHash: newHash, keepSessionId: 'ana-actual' });
     assert.deepEqual(result, { sesionesCerradas: 2 });
+    // El cambio correcto también levanta el bloqueo y reinicia el contador.
+    const afterChange = await users.findCredentialsById(ana);
+    assert.equal(afterChange.bloqueada, false);
+    assert.equal(afterChange.intentos_contrasena_fallidos, 0);
 
     const { rows: [stored] } = await client.query('SELECT password_hash FROM usuarios WHERE id = $1', [ana]);
     assert.ok(await argon2.verify(stored.password_hash, 'Distinta5678'));
