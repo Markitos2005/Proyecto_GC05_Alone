@@ -212,7 +212,7 @@ El procedimiento propuesto será:
 
 1. Recibir la contraseña durante el registro mediante una conexión HTTPS.
 2. Validar que cumple los requisitos establecidos.
-3. Generar un hash mediante Argon2id con una sal aleatoria.
+3. Generar un hash mediante Argon2id con una salt aleatoria.
 4. Guardar en `password_hash` el resultado codificado que contiene la información necesaria para verificar la contraseña posteriormente.
 5. Descartar la contraseña original una vez procesada.
 6. Confirmar el registro sin devolver datos sensibles.
