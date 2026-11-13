@@ -94,6 +94,7 @@ export function RegistrationForm() {
       </form>
       <div ref={feedback} tabIndex={-1} role="status" aria-live="polite" className={success ? 'success' : 'error'}>{message}</div>
       <p>¿Ya tienes cuenta? <a href="#inicio-sesion">Iniciar sesión</a></p>
+      <p><a href="#portada">Volver a la portada</a></p>
     </section>
   </main>;
 }

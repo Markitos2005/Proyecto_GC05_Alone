@@ -23,3 +23,22 @@ button:disabled { opacity: .65; cursor: wait; }
 .success { color: #085d50; }
 p.error:empty { margin: 0; }
 @media (max-width: 480px) { main { margin-top: 1.5rem; } .card { padding: 1.25rem; } }
+
+a { color: #085d50; text-underline-offset: .2em; }
+.home { max-width: 72rem; }
+.home-header, .home-header nav, .hero-actions { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+.home-header { justify-content: space-between; }
+.home-header .brand { text-decoration: none; }
+.home-header button { margin: 0; }
+.logout-control { max-width: 26rem; }
+.button-link { display: inline-block; padding: .75rem 1rem; border-radius: .35rem; background: #085d50; color: white; font-weight: 650; text-decoration: none; }
+.hero { margin: 2rem 0; padding: clamp(1.5rem, 5vw, 4rem); background: #deede6; border-radius: 1rem; }
+.hero h1 { max-width: 21ch; margin-top: .75rem; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.15; }
+.hero > p { max-width: 55ch; }
+.eyebrow { font-size: .8rem; letter-spacing: .07em; font-weight: 700; }
+.home-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.home-grid h2 { margin-top: 0; font-size: 1.2rem; }
+.demo-banner { padding: 1rem; border: 1px solid #916315; border-radius: .5rem; background: #fff5d9; }
+.demo-link { background: transparent; color: #085d50; text-decoration: underline; padding-left: 0; }
+footer { padding: 2rem 0; color: #455f58; }
+@media (max-width: 700px) { .home-grid { grid-template-columns: 1fr; } }

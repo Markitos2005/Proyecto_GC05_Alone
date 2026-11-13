@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { login } from './api/login.js';
 
 /** SCRUM-86 / US-002. La API de Ángel autentica; esta pantalla no verifica hashes. */
-export function LoginForm() {
+export function LoginForm({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [visible, setVisible] = useState(false);
@@ -25,8 +25,7 @@ export function LoginForm() {
       const authenticatedUser = await login({ email, password });
       setUser(authenticatedUser);
       setMessage('Inicio de sesión correcto.');
-      // US-005: la pantalla privada es el perfil; el servidor vuelve a comprobar la sesión.
-      window.location.hash = '#perfil';
+      onLogin?.(authenticatedUser);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -67,6 +66,7 @@ export function LoginForm() {
       <div ref={feedback} tabIndex={-1} role="status" aria-live="polite" className={user ? 'success' : 'error'}>{message}</div>
       {user && <p>Has accedido como {user.email}.</p>}
       {!user && <p>¿Todavía no tienes cuenta? <a href="#registro">Crear cuenta</a></p>}
+      <p><a href="#portada">Volver a la portada</a></p>
     </section>
   </main>;
 }

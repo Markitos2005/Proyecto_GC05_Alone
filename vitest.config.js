@@ -8,6 +8,7 @@ export default defineConfig({
       'server/tests/registration.test.js',
       'server/tests/login.test.js',
       'server/tests/profile.test.js',
+      'server/tests/logout.test.js',
       'client/src/**/*.test.jsx',
     ],
     environment: 'node',

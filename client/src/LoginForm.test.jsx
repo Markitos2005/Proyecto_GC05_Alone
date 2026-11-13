@@ -1,13 +1,14 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import { LoginForm } from './LoginForm.jsx';
 import { App } from './App.jsx';
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); window.location.hash = ''; });
+beforeEach(() => { vi.spyOn(window, 'scrollTo').mockImplementation(() => {}); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); window.location.hash = ''; });
 
 async function fill(password = 'Prueba1234') {
   const user = userEvent.setup();
@@ -98,6 +99,7 @@ it.each([{}, null])('no presenta éxito con una respuesta incompleta: %s', async
 });
 
 it('permite navegar desde registro a login y volver', async () => {
+  window.location.hash = '#registro';
   render(<App />);
   const user = userEvent.setup();
   expect(screen.getByRole('heading', { name: 'Crea tu cuenta' })).toBeInTheDocument();

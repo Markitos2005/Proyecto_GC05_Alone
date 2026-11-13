@@ -1,11 +1,11 @@
 # SCRUM-93 — Diseño técnico del perfil de usuario
 
-**Proyecto:** Lost&Found UEx  
-**Historia de usuario:** US-005 — Gestión de perfil e información de contacto (SCRUM-14)  
-**Subtarea:** SCRUM-93 — Tech Lead: Diseñar el perfil  
-**Responsable:** Ángel Parra García  
-**Sprint:** IT-01  
-**Tecnología:** JavaScript con Node.js y Express.js  
+**Proyecto:** Lost&Found UEx
+**Historia de usuario:** US-005 — Gestión de perfil e información de contacto (SCRUM-14)
+**Subtarea:** SCRUM-93 — Tech Lead: Diseñar el perfil
+**Responsable:** Ángel Parra García
+**Sprint:** IT-01
+**Tecnología:** JavaScript con Node.js y Express.js
 **Estado:** Diseño técnico definido por el Tech Lead, sujeto a ajustes de integración
 
 ## 1. Objetivo
@@ -143,8 +143,8 @@ La validación se realizará en el servidor.
 
 ### Endpoint adoptado
 
-**Método HTTP:** GET  
-**Ruta:** `/api/profile/me`  
+**Método HTTP:** GET
+**Ruta:** `/api/profile/me`
 **Autenticación:** Obligatoria mediante sesión.
 
 El servidor identificará al usuario desde la sesión autenticada.
@@ -185,9 +185,9 @@ No se incluirán contraseñas, hashes, secretos de sesión ni información inter
 
 ### Endpoint adoptado
 
-**Método HTTP:** PATCH  
-**Ruta:** `/api/profile/me`  
-**Autenticación:** Obligatoria mediante sesión.  
+**Método HTTP:** PATCH
+**Ruta:** `/api/profile/me`
+**Autenticación:** Obligatoria mediante sesión.
 **Formato:** JSON.
 
 Se utilizará `PATCH` porque permite modificar únicamente los campos indicados.
