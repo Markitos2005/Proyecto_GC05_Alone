@@ -2,6 +2,10 @@ import pg from 'pg';
 import { createApp } from './app.js';
 import { createUserRepository } from './repositories/users.js';
 import { createSessionMiddleware } from './security/sessions.js';
+import { createRecoveryTokenRepository } from './repositories/recoveryTokens.js';
+import { createRecoveryTokens } from './services/recoveryTokens.js';
+import { createRecoveryService } from './services/recovery.js';
+import { createRecoveryMailer } from './services/recoveryMail.js';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('Configura DATABASE_URL en .env');
@@ -23,6 +27,14 @@ const sessionMiddleware = createSessionMiddleware(
 const app = createApp({
   users: createUserRepository(pool),
   sessionMiddleware,
+  recovery: createRecoveryService({
+    tokens: createRecoveryTokens(createRecoveryTokenRepository(pool)),
+    sendRecovery: createRecoveryMailer({
+      port: process.env.SMTP_TEST_PORT ?? 1025,
+      appOrigin: process.env.RECOVERY_APP_ORIGIN ?? 'http://localhost:5173',
+    }),
+    logError: () => console.error('No se pudo entregar el correo de recuperación de pruebas.'),
+  }),
 });
 
 const port = Number(process.env.PORT ?? 3000);
