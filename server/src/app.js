@@ -220,6 +220,38 @@ export function createApp({
   // Autenticación y origen se comprueban antes de recibir los buffers de las fotos.
   const hallazgos = hallazgoController(createHallazgoService(hallazgoStorage));
   app.get('/api/hallazgos/opciones', authenticated, hallazgos.options);
+  // SCRUM-114 / US-010: consulta del detalle de un hallazgo propio.
+  app.get('/api/hallazgos/:id', authenticated, hallazgos.getOwn);
+  // SCRUM-114 / US-010: acceso privado a imágenes de hallazgos propios.
+  app.get(
+    '/api/hallazgos/:id/imagenes/:imagenId',
+    authenticated,
+    hallazgos.getOwnImage,
+  );
+  // SCRUM-114 / US-010: historial privado de cambios de estado.
+  app.get(
+    '/api/hallazgos/:id/historial',
+    authenticated,
+    hallazgos.getOwnHistory,
+  );
+  // SCRUM-114 / US-010: edición de un hallazgo propio activo.
+  app.patch(
+    '/api/hallazgos/:id',
+    authenticated,
+    requireSameOrigin,
+    requireJson,
+    express.json({ limit: '16kb', strict: true }),
+    hallazgos.updateOwn,
+  );
+  // SCRUM-114 / US-010: transición de estado de un hallazgo propio.
+  app.patch(
+    '/api/hallazgos/:id/estado',
+    authenticated,
+    requireSameOrigin,
+    requireJson,
+    express.json({ limit: '16kb', strict: true }),
+    hallazgos.changeOwnState,
+  );
   app.post('/api/hallazgos', authenticated, requireSameOrigin,
     rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false,
       message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
