@@ -98,6 +98,10 @@ Como usuario autenticado, quiero cerrar mi sesión, para garantizar la seguridad
 - Verificar acceso antes del cierre, acceso posterior con la sesión cerrada y nuevo inicio de sesión.
 - Cumplir R-05, R-08 y R-09.
 
+#### Validación del Product Owner
+
+- Validado por el Product Owner el 13/11/2026: cumple los criterios de aceptación.
+
 ### US-004 — Recuperar la contraseña olvidada
 
 Como usuario registrado que ha olvidado su contraseña, quiero solicitar un enlace de restablecimiento a mi correo, para recuperar el acceso a mi cuenta sin intervención de un Administrador.
