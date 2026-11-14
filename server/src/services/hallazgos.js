@@ -4,7 +4,7 @@ export class HallazgoError extends Error {
   constructor(status, message, errors) { super(message); this.status = status; this.errors = errors; }
 }
 
-/** SCRUM-49. El almacenamiento se conecta en SCRUM-105, sin inventar tablas ni categorías. */
+/** SCRUM-49. El almacenamiento (SCRUM-105) está en repositories/hallazgos.js. */
 export function createHallazgoService(storage) {
   async function context(userId) {
     const result = await storage.getPublicationContext(userId);
@@ -30,9 +30,8 @@ export function createHallazgoService(storage) {
       }
       const validated = await validateHallazgoImages(files);
       if (validated.error) throw new HallazgoError(400, 'Revisa las imágenes.', { imagenes: validated.error });
-      // Raúl/SCRUM-105: publish debe guardar TODO o NADA, separar rasgos privados,
-      // comprobar de nuevo rol/asignación/categoría en la transacción y limpiar fotos si falla.
-      // Los buffers ya están validados. Usa nombres generados por el servidor.
+      // SCRUM-105: el repositorio guarda TODO o NADA en una transacción, separa los rasgos
+      // privados y vuelve a comprobar rol, asignación y categoría antes de guardar.
       const created = await storage.publish({
         ...value, autorId: userId, facultadId: current.facultad.id,
         estado: 'Activo', imagenes: validated.images,

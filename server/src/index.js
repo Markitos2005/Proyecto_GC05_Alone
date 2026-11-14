@@ -28,7 +28,7 @@ const sessionMiddleware = createSessionMiddleware(
 const app = createApp({
   users: createUserRepository(pool),
   sessionMiddleware,
-  // Raúl/SCRUM-105: completar este repositorio; rutas y formulario ya usan el contrato.
+  // SCRUM-105: hallazgos, rasgos privados y fotos en PostgreSQL.
   hallazgoStorage: createHallazgoRepository(pool),
   recovery: createRecoveryService({
     tokens: createRecoveryTokens(createRecoveryTokenRepository(pool)),
