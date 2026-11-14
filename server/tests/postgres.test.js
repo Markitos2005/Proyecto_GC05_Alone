@@ -65,7 +65,7 @@ test('US-006: cambio de contraseña atómico con registro y cierre de las demás
   try {
     await client.query(`CREATE SCHEMA "${schema}"`);
     await client.query(`SET search_path TO "${schema}"`);
-    for (const migration of ['001-usuarios.sql', '002-sesiones.sql', '003-perfil.sql', '004-cambios-contrasena.sql', '005-bloqueo-contrasena.sql']) {
+    for (const migration of ['001-usuarios.sql', '002-sesiones.sql', '003-perfil.sql', '004-recuperacion.sql', '005-cambios-contrasena.sql', '006-bloqueo-contrasena.sql']) {
       await client.query(await readFile(new URL(`../db/migrations/${migration}`, import.meta.url), 'utf8'));
     }
     const users = createUserRepository(client);

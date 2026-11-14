@@ -4,7 +4,7 @@ import { LogoutButton } from './LogoutButton.jsx';
 const sections = [
   [
     'Objetos encontrados',
-    'Consulta los hallazgos del campus.',
+    'Publica lo que encuentres y consulta los hallazgos del campus.',
     'Consulta y búsqueda pendientes · US-009',
   ],
   [
@@ -121,6 +121,12 @@ export function HomePage({
               <p>
                 <a href="#perfil">
                   Acceder a mi perfil
+                </a>
+              </p>
+            ) : title === 'Objetos encontrados' && user && !demo ? (
+              <p>
+                <a href="#publicar-hallazgo">
+                  Publicar un hallazgo
                 </a>
               </p>
             ) : (

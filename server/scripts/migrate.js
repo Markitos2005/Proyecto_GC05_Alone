@@ -15,8 +15,10 @@ try {
     '001-usuarios.sql',
     '002-sesiones.sql',
     '003-perfil.sql',
-    '004-cambios-contrasena.sql',
-    '005-bloqueo-contrasena.sql',
+    '004-recuperacion.sql',
+    '005-cambios-contrasena.sql',
+    '006-bloqueo-contrasena.sql',
+    '007-hallazgos.sql',
   ];
 
   for (const filename of migrations) {

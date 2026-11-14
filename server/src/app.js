@@ -22,11 +22,19 @@ import { profileController } from './controllers/profile.js';
 import { requireAuth } from './security/auth.js';
 import { createPasswordService, PasswordError } from './services/password.js';
 import { passwordController } from './controllers/password.js';
+import { RecoveryError } from './services/recovery.js';
+import { recoveryController } from './controllers/recovery.js';
+import { createHallazgoService, HallazgoError } from './services/hallazgos.js';
+import { createHallazgoRepository } from './repositories/hallazgos.js';
+import { hallazgoController, receiveHallazgo } from './controllers/hallazgos.js';
 
 /** App independiente del puerto y de la conexión a PostgreSQL. */
 export function createApp({
   users,
   sessionMiddleware,
+  recovery,
+  hallazgoStorage = createHallazgoRepository(),
+  recoveryLimit = 30,
   registrationLimit = 20,
   loginLimit = 10,
   passwordLimit = 20,
@@ -197,6 +205,26 @@ export function createApp({
     logoutController(),
   );
 
+  // El límite por correo (3/h) lo aplica SCRUM-96 en PostgreSQL. Este limita abuso por IP.
+  const recoveryRateLimit = rateLimit({
+    windowMs: 60 * 60 * 1000, limit: recoveryLimit,
+    standardHeaders: 'draft-7', legacyHeaders: false,
+    message: { message: 'Demasiados intentos. Inténtalo más tarde.' },
+  });
+  for (const [path, action] of [['forgot-password', 'request'], ['reset-password', 'reset'], ['validate-reset-token', 'validate']]) {
+    app.post(`/api/auth/${path}`, recoveryRateLimit, requireJson,
+      express.json({ limit: '16kb', strict: true }), recoveryController(recovery, action));
+  }
+
+  // SCRUM-49 / SCRUM-103: cualquier cuenta autenticada y activa publica hallazgos.
+  // Autenticación y origen se comprueban antes de recibir los buffers de las fotos.
+  const hallazgos = hallazgoController(createHallazgoService(hallazgoStorage));
+  app.get('/api/hallazgos/opciones', authenticated, hallazgos.options);
+  app.post('/api/hallazgos', authenticated, requireSameOrigin,
+    rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false,
+      message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
+    receiveHallazgo, hallazgos.publish);
+
   app.use('/api', (_req, res) => {
     res.status(404).json({
       message: 'Recurso no encontrado.',
@@ -220,7 +248,9 @@ export function createApp({
       error instanceof RegistrationError ||
       error instanceof LoginError ||
       error instanceof ProfileError ||
-      error instanceof PasswordError
+      error instanceof PasswordError ||
+      error instanceof RecoveryError ||
+      error instanceof HallazgoError
     ) {
       return res.status(error.status).json({
         message: error.message,

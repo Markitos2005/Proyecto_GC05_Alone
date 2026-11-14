@@ -4,6 +4,8 @@ import { RegistrationForm } from './RegistrationForm.jsx';
 import { LoginForm } from './LoginForm.jsx';
 import { ProfilePage } from './ProfilePage.jsx';
 import { HomePage } from './HomePage.jsx';
+import { ForgotPasswordForm, ResetPasswordForm } from './RecoveryForms.jsx';
+import { PublishFindingPage } from './PublishFindingPage.jsx';
 
 /** Navegación de registro, inicio de sesión, perfil y cierre de sesión. */
 export function App() {
@@ -59,19 +61,39 @@ export function App() {
     navigate('#app');
   }
 
+  // Los enlaces del correo deben abrirse también si hay estado de usuario en memoria.
+  if (hash === '#recuperar-contrasena') return <ForgotPasswordForm />;
+  if (hash === '#restablecer-contrasena' || hash.startsWith('#restablecer-contrasena?')) {
+    const params = new URLSearchParams(hash.split('?')[1] ?? '');
+    const token = params.getAll('token').length === 1 ? params.get('token') : null;
+    return <ResetPasswordForm key={hash} token={token} onReset={() => {
+      setUser(null);
+      setDemo(false);
+      setNotice('Contraseña restablecida. Inicia sesión con tu nueva contraseña.');
+      // Quitar el secreto de la entrada actual del historial tras completar el cambio.
+      window.history.replaceState(null, '', '#inicio-sesion');
+      setHash('#inicio-sesion');
+    }} />;
+  }
+
   // Registro e inicio de sesión.
   if (!user && hash === '#registro') {
     return <RegistrationForm />;
   }
 
   if (!user && hash === '#inicio-sesion') {
-    return <LoginForm onLogin={authenticated} />;
+    return <LoginForm onLogin={authenticated} notice={notice} />;
   }
 
   // Perfil real: el backend comprueba que exista una sesión válida.
   // No se permite consultar el perfil desde la demostración.
   if (hash === '#perfil' && !demo) {
     return <ProfilePage />;
+  }
+
+  // US-008: publicar un hallazgo. El backend exige una sesión válida.
+  if (hash === '#publicar-hallazgo' && !demo) {
+    return <PublishFindingPage />;
   }
 
   // Portada pública o pantalla del usuario autenticado.

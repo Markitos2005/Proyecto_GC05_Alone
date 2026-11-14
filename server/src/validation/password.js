@@ -1,4 +1,4 @@
-import { passwordStrengthError } from './registration.js';
+import { validatePassword } from './registration.js';
 
 const FIELDS = ['actual', 'nueva', 'confirmacion'];
 const MAX_LENGTH = 128;
@@ -23,7 +23,7 @@ export function validatePasswordChange(body) {
   else if ([...actual].length > MAX_LENGTH) errors.actual = 'La contraseña no puede superar los 128 caracteres.';
 
   if (!nueva) errors.nueva = 'Introduce la nueva contraseña.';
-  else if (passwordStrengthError(nueva)) errors.nueva = passwordStrengthError(nueva);
+  else if (validatePassword(nueva)) errors.nueva = validatePassword(nueva);
 
   if (!confirmacion) errors.confirmacion = 'Repite la nueva contraseña.';
   else if (nueva && confirmacion !== nueva) errors.confirmacion = 'Las contraseñas nuevas no coinciden.';

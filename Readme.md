@@ -17,3 +17,26 @@ npm.cmd run dev
 Si `.env` ya existe, conservarlo y revisar sus valores. Usar únicamente datos ficticios. Para ejecutar el monolito compilado: `npm.cmd run build` y `npm.cmd start`.
 
 Pruebas: `npm.cmd test` (API y React), `npm.cmd run test:db` (PostgreSQL real independiente), `npm.cmd run test:monolith` (arranque compilado, archivos React y registro HTTP).
+
+Publicar hallazgos (US-008: SCRUM-49, API; SCRUM-105, almacenamiento; SCRUM-103, formulario):
+
+- Tras actualizar, ejecutar `npm.cmd run db:migrate` (migración `007-hallazgos.sql`) y, solo en desarrollo, `npm.cmd run db:seed-dev`, que carga unas facultades y categorías iniciales hasta que US-023 permita administrarlas. Es idempotente.
+- Pantalla: con sesión iniciada, «Publicar un hallazgo» en la portada (`#publicar-hallazgo`).
+- Cualquier cuenta autenticada y activa puede publicar y elige la facultad donde se entregará el objeto. La tabla `asignaciones_conserje` queda preparada para cuando la publicación se reserve a Conserjería (US-025).
+- Hallazgo, rasgos privados y fotos se guardan en una única transacción de PostgreSQL: si algo falla, no queda nada guardado. El servidor vuelve a comprobar cuenta, facultad y categoría dentro de la transacción. Las fotos se guardan en la base de datos (BYTEA) ya verificadas y sin metadatos; nunca se usa el nombre del archivo del cliente.
+- Los rasgos privados van en su propia tabla y no se devuelven en ninguna respuesta pública.
+- `GET /api/hallazgos/opciones`: con sesión; devuelve `{ facultades: [{ id, nombre }], categorias: [{ id, nombre }] }` activas.
+- `POST /api/hallazgos`: con sesión y origen permitido; multipart con un campo `datos` (JSON) y entre 1 y 5 archivos `imagenes`, JPG/PNG de hasta 5 MiB cada uno. JSON: `{ "facultadId": "UUID-de-facultad", "categoriaId": "UUID-de-categoria", "descripcion": "Objeto ficticio", "fechaHallazgo": "2026-01-01", "latitud": 0, "longitud": 0, "puntoEntrega": "Conserjería ficticia", "rasgosPrivados": "No publicar" }`. Los dos últimos textos son opcionales. Autor y estado los fija el servidor.
+- Límites técnicos del contrato: textos de hasta 2000 caracteres, fecha existente no futura (UTC), coordenadas numéricas y hasta 16 megapíxeles por foto.
+- Respuesta 201: `{ message: "Hallazgo publicado correctamente.", hallazgo: { id, estado: "Activo" } }`. Errores 400 de campos incluyen `errors`; también puede responder 401, 403, 413, 415, 429 y 500.
+- Pruebas: `server/tests/hallazgos.test.js` (API), `client/src/PublishFindingPage.test.jsx` (formulario), `server/tests/hallazgos.postgres.test.js` (sesiones reales) y `server/tests/hallazgos-storage.postgres.test.js` (guardado atómico, rasgos separados y fotos sin metadatos).
+
+Recuperación de contraseña (SCRUM-43, API; SCRUM-94, pantallas React):
+
+- Arrancar el buzón local con `docker compose up -d mail` y abrir `http://localhost:8025`. Solo captura correos de pruebas; no los entrega por Internet.
+- Conservar el `.env` existente y añadir `SMTP_TEST_PORT=1025` y `RECOVERY_APP_ORIGIN=http://localhost:5173` (usar `http://localhost:3000` para el monolito compilado). Ejecutar `npm.cmd run db:migrate` para preparar las tablas sin borrar los datos.
+- `POST /api/auth/forgot-password`, JSON `{ "email": "persona@example.com" }`: devuelve la misma confirmación para cuentas elegibles, inexistentes, inactivas y solicitudes limitadas por correo. El enlace aparece solo en el buzón de pruebas. Si SMTP falla se registra un error genérico y se conserva la misma confirmación; no se garantiza la entrega.
+- `POST /api/auth/reset-password`, JSON `{ "token": "token-del-correo", "password": "Nueva1234", "confirmPassword": "Nueva1234" }`: cambia la contraseña, consume el enlace y elimina las sesiones de la cuenta en una sola transacción. No inicia sesión automáticamente.
+- Desde el inicio de sesión, pulsar «He olvidado mi contraseña», solicitar el enlace y abrirlo en Mailpit. El enlace `/#restablecer-contrasena?token=...` abre el formulario de nueva contraseña. Tras completar el cambio se elimina el token de la URL y se vuelve al inicio de sesión, sin autenticar automáticamente.
+- Al abrirlo se comprueba su vigencia con `POST /api/auth/validate-reset-token`, JSON `{ "token": "token-del-correo" }`. Si ha caducado, se ha sustituido o se ha usado, se muestra «Enlace expirado o no válido» sin mostrar el formulario. Esta consulta no consume el enlace; al guardar la contraseña se vuelve a validar dentro de la transacción.
+- La prueba `server/tests/recovery.postgres.test.js` verifica el servidor con PostgreSQL y un buzón SMTP efímero, sin necesitar Docker ni enviar mensajes reales. Las pruebas de `client/src/RecoveryForms.test.jsx` verifican las pantallas y el contrato HTTP.
