@@ -15,6 +15,7 @@ try {
     '001-usuarios.sql',
     '002-sesiones.sql',
     '003-perfil.sql',
+    '004-recuperacion.sql',
   ];
 
   for (const filename of migrations) {

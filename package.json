@@ -14,7 +14,7 @@
     "start": "node --env-file=.env server/src/index.js",
     "db:migrate": "node --env-file=.env server/scripts/migrate.js",
     "test": "vitest run",
-    "test:db": "node --env-file=.env --test server/tests/postgres.test.js",
+    "test:db": "node --env-file=.env --test server/tests/postgres.test.js server/tests/recovery-tokens.postgres.test.js server/tests/recovery.postgres.test.js",
     "test:monolith": "npm run build && node --env-file=.env --test server/tests/monolith.test.js"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "express-rate-limit": "^8.7.4",
     "express-session": "^1.19.0",
     "helmet": "^8.3.0",
+    "nodemailer": "^10.5.0",
     "pg": "^8.23.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

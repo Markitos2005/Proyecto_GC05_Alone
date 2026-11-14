@@ -20,11 +20,15 @@ import { loginController } from './controllers/login.js';
 import { createProfileService, ProfileError } from './services/profile.js';
 import { profileController } from './controllers/profile.js';
 import { requireAuth } from './security/auth.js';
+import { RecoveryError } from './services/recovery.js';
+import { recoveryController } from './controllers/recovery.js';
 
 /** App independiente del puerto y de la conexión a PostgreSQL. */
 export function createApp({
   users,
   sessionMiddleware,
+  recovery,
+  recoveryLimit = 30,
   registrationLimit = 20,
   loginLimit = 10,
   logError = () => console.error('Error interno de la aplicación.'),
@@ -173,6 +177,17 @@ export function createApp({
     logoutController(),
   );
 
+  // El límite por correo (3/h) lo aplica SCRUM-96 en PostgreSQL. Este limita abuso por IP.
+  const recoveryRateLimit = rateLimit({
+    windowMs: 60 * 60 * 1000, limit: recoveryLimit,
+    standardHeaders: 'draft-7', legacyHeaders: false,
+    message: { message: 'Demasiados intentos. Inténtalo más tarde.' },
+  });
+  for (const [path, action] of [['forgot-password', 'request'], ['reset-password', 'reset'], ['validate-reset-token', 'validate']]) {
+    app.post(`/api/auth/${path}`, recoveryRateLimit, requireJson,
+      express.json({ limit: '16kb', strict: true }), recoveryController(recovery, action));
+  }
+
   app.use('/api', (_req, res) => {
     res.status(404).json({
       message: 'Recurso no encontrado.',
@@ -195,7 +210,8 @@ export function createApp({
     if (
       error instanceof RegistrationError ||
       error instanceof LoginError ||
-      error instanceof ProfileError
+      error instanceof ProfileError ||
+      error instanceof RecoveryError
     ) {
       return res.status(error.status).json({
         message: error.message,

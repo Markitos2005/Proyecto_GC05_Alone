@@ -1,4 +1,10 @@
 services:
+  # Buzón de pruebas: captura mensajes localmente, sin enviarlos a Internet.
+  mail:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
   db:
     image: postgres:17
     environment:

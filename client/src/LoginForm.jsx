@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { login } from './api/login.js';
 
 /** SCRUM-86 / US-002. La API de Ángel autentica; esta pantalla no verifica hashes. */
-export function LoginForm({ onLogin }) {
+export function LoginForm({ onLogin, notice = '' }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [visible, setVisible] = useState(false);
@@ -42,6 +42,7 @@ export function LoginForm({ onLogin }) {
     <section className="card" aria-labelledby="login-title">
       <h1 id="login-title">Inicia sesión</h1>
       <p>Accede con el correo y la contraseña de tu cuenta.</p>
+      {notice && <p role="status" className="success">{notice}</p>}
       {!user && <form onSubmit={submit} aria-busy={pending}>
         <label htmlFor="login-email">Correo electrónico</label>
         <input id="login-email" name="email" type="email" autoComplete="username" required maxLength={254}
@@ -66,6 +67,7 @@ export function LoginForm({ onLogin }) {
       <div ref={feedback} tabIndex={-1} role="status" aria-live="polite" className={user ? 'success' : 'error'}>{message}</div>
       {user && <p>Has accedido como {user.email}.</p>}
       {!user && <p>¿Todavía no tienes cuenta? <a href="#registro">Crear cuenta</a></p>}
+      {!user && <p><a href="#recuperar-contrasena">He olvidado mi contraseña</a></p>}
       <p><a href="#portada">Volver a la portada</a></p>
     </section>
   </main>;
