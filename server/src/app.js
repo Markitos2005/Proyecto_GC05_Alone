@@ -20,6 +20,8 @@ import { loginController } from './controllers/login.js';
 import { createProfileService, ProfileError } from './services/profile.js';
 import { profileController } from './controllers/profile.js';
 import { requireAuth } from './security/auth.js';
+import { createPasswordService, PasswordError } from './services/password.js';
+import { passwordController } from './controllers/password.js';
 
 /** App independiente del puerto y de la conexión a PostgreSQL. */
 export function createApp({
@@ -27,6 +29,7 @@ export function createApp({
   sessionMiddleware,
   registrationLimit = 20,
   loginLimit = 10,
+  passwordLimit = 20,
   logError = () => console.error('Error interno de la aplicación.'),
 }) {
   const app = express();
@@ -157,6 +160,27 @@ export function createApp({
     profile.update,
   );
 
+  // Cambio de contraseña: SCRUM-45 y SCRUM-99 / US-006.
+  // El bloqueo por cuenta está en el servicio; este límite por IP frena ataques masivos.
+  const password = passwordController(createPasswordService(users));
+  app.post(
+    '/api/profile/me/password',
+    rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: passwordLimit,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      message: {
+        message: 'Demasiados intentos. Inténtalo más tarde.',
+      },
+    }),
+    requireSameOrigin,
+    authenticated,
+    requireJson,
+    express.json({ limit: '16kb', strict: true }),
+    password.change,
+  );
+
   // Cierre de sesión: SCRUM-39 / US-003.
   app.post(
     '/api/auth/logout',
@@ -195,7 +219,8 @@ export function createApp({
     if (
       error instanceof RegistrationError ||
       error instanceof LoginError ||
-      error instanceof ProfileError
+      error instanceof ProfileError ||
+      error instanceof PasswordError
     ) {
       return res.status(error.status).json({
         message: error.message,

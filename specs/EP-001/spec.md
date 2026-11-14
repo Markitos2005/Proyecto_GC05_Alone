@@ -71,6 +71,10 @@ Como usuario registrado, quiero autenticarme con mi correo y contraseña, para a
 - Verificar que las credenciales no aparecen en registros ni respuestas de la API.
 - Cumplir R-04, R-05, R-06, R-08 y R-09.
 
+#### Validación del Product Owner
+
+- Validado por el Product Owner el 13/11/2026: cumple los criterios de aceptación.
+
 ### US-003 — Cierre de sesión
 
 Como usuario autenticado, quiero cerrar mi sesión, para garantizar la seguridad de mi cuenta y evitar el acceso de otras personas en el mismo dispositivo.
@@ -93,6 +97,10 @@ Como usuario autenticado, quiero cerrar mi sesión, para garantizar la seguridad
 
 - Verificar acceso antes del cierre, acceso posterior con la sesión cerrada y nuevo inicio de sesión.
 - Cumplir R-05, R-08 y R-09.
+
+#### Validación del Product Owner
+
+- Validado por el Product Owner el 13/11/2026: cumple los criterios de aceptación.
 
 ### US-004 — Recuperar la contraseña olvidada
 
@@ -186,6 +194,11 @@ Como usuario autenticado, quiero cambiar mi contraseña desde mi perfil, para ma
 - Verificar el límite de intentos fallidos y que las contraseñas no aparecen en registros ni respuestas de la API.
 - Utilizar únicamente datos ficticios o sintéticos durante las pruebas.
 - Cumplir R-03, R-04, R-05, R-06, R-07, R-08 y R-09.
+
+#### Aclaraciones del Product Owner
+
+- Después de 5 intentos fallidos seguidos con la contraseña actual, hay que esperar 15 minutos para volver a intentarlo.
+- Validado por el Product Owner el 14/11/2026: cumple los criterios de aceptación. El AC-08 no se aplica porque la US-007 (inicio de sesión con OAuth) se ha descartado y todas las cuentas tienen contraseña local.
 
 ### US-007 — Inicio de sesión alternativo mediante OAuth
 
