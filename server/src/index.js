@@ -6,6 +6,7 @@ import { createRecoveryTokenRepository } from './repositories/recoveryTokens.js'
 import { createRecoveryTokens } from './services/recoveryTokens.js';
 import { createRecoveryService } from './services/recovery.js';
 import { createRecoveryMailer } from './services/recoveryMail.js';
+import { createHallazgoRepository } from './repositories/hallazgos.js';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('Configura DATABASE_URL en .env');
@@ -27,6 +28,8 @@ const sessionMiddleware = createSessionMiddleware(
 const app = createApp({
   users: createUserRepository(pool),
   sessionMiddleware,
+  // Raúl/SCRUM-105: completar este repositorio; rutas y formulario ya usan el contrato.
+  hallazgoStorage: createHallazgoRepository(pool),
   recovery: createRecoveryService({
     tokens: createRecoveryTokens(createRecoveryTokenRepository(pool)),
     sendRecovery: createRecoveryMailer({

@@ -12,6 +12,7 @@ export default defineConfig({
       'server/tests/recovery-tokens.test.js',
       'server/tests/recovery.test.js',
       'server/tests/recovery-mail.test.js',
+      'server/tests/hallazgos.test.js',
       'client/src/**/*.test.jsx',
     ],
     environment: 'node',

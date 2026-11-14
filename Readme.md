@@ -18,6 +18,16 @@ Si `.env` ya existe, conservarlo y revisar sus valores. Usar únicamente datos f
 
 Pruebas: `npm.cmd test` (API y React), `npm.cmd run test:db` (PostgreSQL real independiente), `npm.cmd run test:monolith` (arranque compilado, archivos React y registro HTTP).
 
+Publicar hallazgos (SCRUM-49, US-008): API preparada; tabla y almacenamiento de fotos pendientes de Raúl en SCRUM-105 y formulario en SCRUM-103. Sin conectar SCRUM-105 devuelve 503, no guarda ni simula publicaciones. No hay nuevas migraciones ni categorías de ejemplo.
+
+- Raúl: completar las dos operaciones de `server/src/repositories/hallazgos.js`. El contrato y las garantías de guardado atómico están comentados allí. El repositorio se conecta desde `server/src/index.js`.
+- `GET /api/hallazgos/opciones`: sesión de Conserje; devuelve `{ facultad: { id, nombre }, categorias: [{ id, nombre }] }` de su asignación y categorías activas.
+- `POST /api/hallazgos`: sesión de Conserje y origen permitido; multipart con un campo `datos` (JSON) y entre 1 y 5 archivos `imagenes`, JPG/PNG de hasta 5 MiB cada uno. JSON: `{ "categoriaId": "UUID-de-categoria", "descripcion": "Objeto ficticio", "fechaHallazgo": "2026-01-01", "latitud": 0, "longitud": 0, "puntoEntrega": "Conserjería ficticia", "rasgosPrivados": "No publicar" }`. Los dos últimos textos son opcionales. Autor, facultad y estado los fija el servidor.
+- Límites técnicos del contrato: textos de hasta 2000 caracteres, fecha existente no futura (UTC), coordenadas numéricas y hasta 16 megapíxeles por foto. Sharp verifica el contenido y retira metadatos antes de entregar los buffers al almacenamiento. Estos límites técnicos no son nuevas estimaciones ni funcionalidades del profesor.
+- Respuesta 201: `{ message: "Hallazgo publicado correctamente.", hallazgo: { id, estado: "Activo" } }`. No devuelve rasgos privados ni los buffers de imágenes. Errores 400 de campos incluyen `errors`; también puede responder 401, 403, 413, 415, 429, 503 y 500.
+- Raúl: importar `getHallazgoOptions` y `publishHallazgo` de `client/src/api/hallazgos.js`. Este módulo construye FormData e incluye la cookie. No establecer manualmente Content-Type. No se han creado pantallas de SCRUM-103.
+- `server/tests/hallazgos.postgres.test.js` comprueba usuarios/sesiones reales y el contrato con un almacenamiento de hallazgos simulado de forma explícita. La persistencia definitiva de hallazgos y fotos deberá probarse al completar SCRUM-105.
+
 Recuperación de contraseña (SCRUM-43, API; SCRUM-94, pantallas React):
 
 - Arrancar el buzón local con `docker compose up -d mail` y abrir `http://localhost:8025`. Solo captura correos de pruebas; no los entrega por Internet.
