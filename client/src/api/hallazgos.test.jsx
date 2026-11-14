@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from 'vitest';
-import { getHallazgoOptions, publishHallazgo } from './hallazgos.js';
+import { getHallazgoOptions, publishHallazgo, searchHallazgos } from './hallazgos.js';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -36,4 +36,68 @@ it('controla un fallo de red', async () => {
 it('controla una respuesta no JSON', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => { throw new Error(); } }));
   await expect(getHallazgoOptions()).rejects.toThrow('La respuesta del servidor no es válida');
+});
+
+
+it('busca hallazgos enviando los filtros y la sesión', async () => {
+  const response = {
+    hallazgos: [],
+    paginacion: {
+      pagina: 1,
+      tamano: 12,
+      total: 0,
+      totalPaginas: 0,
+      anterior: null,
+      siguiente: null,
+      corte: null,
+    },
+  };
+
+  const fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => response,
+  });
+
+  vi.stubGlobal('fetch', fetch);
+
+  expect(await searchHallazgos({
+    q: 'mochila azul',
+    categoriaId: 'categoria-1',
+    facultadId: 'facultad-1',
+    fechaDesde: '2026-01-01',
+    fechaHasta: '2026-01-31',
+    pagina: 2,
+    tamano: 12,
+    corte: '2026-01-01T10:00:00.000Z',
+  })).toEqual(response);
+
+  expect(fetch).toHaveBeenCalledWith(
+    '/api/hallazgos?q=mochila+azul&categoriaId=categoria-1&facultadId=facultad-1&fechaDesde=2026-01-01&fechaHasta=2026-01-31&pagina=2&tamano=12&corte=2026-01-01T10%3A00%3A00.000Z',
+    { credentials: 'same-origin' },
+  );
+});
+
+it('no envía filtros vacíos en la búsqueda', async () => {
+  const fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ hallazgos: [], paginacion: {} }),
+  });
+
+  vi.stubGlobal('fetch', fetch);
+
+  await searchHallazgos({
+    q: '',
+    categoriaId: '',
+    facultadId: '',
+    fechaDesde: '',
+    fechaHasta: '',
+    pagina: '',
+    tamano: '',
+    corte: '',
+  });
+
+  expect(fetch).toHaveBeenCalledWith(
+    '/api/hallazgos',
+    { credentials: 'same-origin' },
+  );
 });

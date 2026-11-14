@@ -89,6 +89,17 @@ export function hallazgoController(service) {
     options: async (req, res, next) => {
       try { return res.json(await service.options(req.user.id)); } catch (error) { return next(error); }
     },
+    search: async (req, res, next) => {
+      try { return res.json(await service.search(req.query)); } catch (error) { return next(error); }
+    },
+    image: async (req, res, next) => {
+      try {
+        const image = await service.image(req.params.id, req.params.posicion);
+        // Solo JPG/PNG ya verificados al publicar; caché breve y privada porque el hallazgo puede retirarse.
+        res.set({ 'Content-Type': image.mime, 'Cache-Control': 'private, max-age=300', 'Content-Disposition': 'inline' });
+        return res.send(image.datos);
+      } catch (error) { return next(error); }
+    },
     publish: async (req, res, next) => {
       try {
         if (typeof req.body?.datos !== 'string' || Object.keys(req.body).some(key => key !== 'datos')) {

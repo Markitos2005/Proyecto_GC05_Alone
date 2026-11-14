@@ -133,3 +133,72 @@ export function validateHallazgoStateChange(data) {
     },
   };
 }
+
+// SCRUM-107 / US-009: búsqueda paginada de hallazgos Activos.
+export const BUSQUEDA_TAMANO_DEFECTO = 12;
+export const BUSQUEDA_TAMANO_MAX = 50;
+export const BUSQUEDA_TEXTO_MAX = 100;
+const busquedaFields = ['q', 'categoriaId', 'facultadId', 'fechaDesde', 'fechaHasta', 'pagina', 'tamano', 'corte'];
+
+function isDate(text) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+  const date = new Date(`${text}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === text;
+}
+
+function positiveInt(text, max) {
+  if (!/^\d{1,6}$/.test(text)) return null;
+  const number = Number(text);
+  return number >= 1 && number <= max ? number : null;
+}
+
+/** Valida la query string. Todos los filtros son opcionales; un parámetro repetido o desconocido es un error. */
+export function validateBusqueda(query) {
+  const errors = {};
+  const raw = query && typeof query === 'object' ? query : {};
+  if (Object.keys(raw).some(key => !busquedaFields.includes(key))) errors.parametros = `Solo se admiten: ${busquedaFields.join(', ')}.`;
+  const text = (name) => {
+    const value = raw[name];
+    if (value === undefined) return '';
+    if (typeof value !== 'string') { errors[name] = 'Indica este filtro una sola vez.'; return ''; }
+    return value.trim();
+  };
+
+  const q = text('q').replace(/\s+/g, ' ');
+  if ([...q].length > BUSQUEDA_TEXTO_MAX) errors.q = `El texto de búsqueda no puede superar los ${BUSQUEDA_TEXTO_MAX} caracteres.`;
+  const categoriaId = text('categoriaId');
+  if (categoriaId && !validator.isUUID(categoriaId)) errors.categoriaId = 'Selecciona una categoría válida.';
+  const facultadId = text('facultadId');
+  if (facultadId && !validator.isUUID(facultadId)) errors.facultadId = 'Selecciona una facultad válida.';
+  const fechaDesde = text('fechaDesde');
+  if (fechaDesde && !isDate(fechaDesde)) errors.fechaDesde = 'Indica una fecha existente (AAAA-MM-DD).';
+  const fechaHasta = text('fechaHasta');
+  if (fechaHasta && !isDate(fechaHasta)) errors.fechaHasta = 'Indica una fecha existente (AAAA-MM-DD).';
+  if (fechaDesde && fechaHasta && !errors.fechaDesde && !errors.fechaHasta && fechaDesde > fechaHasta) {
+    errors.fechaHasta = 'La fecha final no puede ser anterior a la inicial.';
+  }
+  const paginaText = text('pagina');
+  const pagina = paginaText ? positiveInt(paginaText, 100000) : 1;
+  if (pagina === null) errors.pagina = 'La página debe ser un número entero mayor que 0.';
+  const tamanoText = text('tamano');
+  const tamano = tamanoText ? positiveInt(tamanoText, BUSQUEDA_TAMANO_MAX) : BUSQUEDA_TAMANO_DEFECTO;
+  if (tamano === null) errors.tamano = `El tamaño de página debe estar entre 1 y ${BUSQUEDA_TAMANO_MAX}.`;
+  // corte: instante devuelto por la primera página. Fija el listado para que, al pasar de página,
+  // los hallazgos publicados después no desplacen resultados (US-009-AC-02).
+  const corte = text('corte');
+  if (corte && (!validator.isISO8601(corte, { strict: true }) || !Number.isFinite(Date.parse(corte)))) {
+    errors.corte = 'El corte de la búsqueda no es válido. Vuelve a la primera página.';
+  }
+
+  return {
+    errors,
+    value: {
+      terminos: q ? q.split(' ').slice(0, 10) : [],
+      q, categoriaId, facultadId, fechaDesde, fechaHasta, pagina, tamano, corte,
+    },
+  };
+}
+
+export function validateImagenRef(id, posicion) {
+  return validator.isUUID(String(id ?? '')) && /^[1-5]$/.test(String(posicion ?? ''));
+}

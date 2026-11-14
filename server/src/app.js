@@ -38,6 +38,7 @@ export function createApp({
   registrationLimit = 20,
   loginLimit = 10,
   passwordLimit = 20,
+  searchLimit = 120,
   logError = () => console.error('Error interno de la aplicación.'),
 }) {
   const app = express();
@@ -220,6 +221,11 @@ export function createApp({
   // Autenticación y origen se comprueban antes de recibir los buffers de las fotos.
   const hallazgos = hallazgoController(createHallazgoService(hallazgoStorage));
   app.get('/api/hallazgos/opciones', authenticated, hallazgos.options);
+  // SCRUM-107 / US-009: foto pública por posición (1-5), solo de hallazgos Activos. Comparte forma de URL
+  // con la foto privada de US-010 (por UUID): si el último segmento es un UUID, se cede a esa ruta.
+  app.get('/api/hallazgos/:id/imagenes/:posicion',
+    (req, _res, next) => next(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.posicion) ? 'route' : undefined),
+    authenticated, hallazgos.image);
   // SCRUM-114 / US-010: consulta del detalle de un hallazgo propio.
   app.get('/api/hallazgos/:id', authenticated, hallazgos.getOwn);
   // SCRUM-114 / US-010: acceso privado a imágenes de hallazgos propios.
@@ -256,6 +262,11 @@ export function createApp({
     rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false,
       message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
     receiveHallazgo, hallazgos.publish);
+
+  // SCRUM-107 / US-009: búsqueda paginada de hallazgos Activos y sus fotos públicas, con sesión.
+  const searchRateLimit = rateLimit({ windowMs: 60 * 1000, limit: searchLimit, standardHeaders: 'draft-7', legacyHeaders: false,
+    message: { message: 'Demasiadas búsquedas. Inténtalo dentro de un momento.' } });
+  app.get('/api/hallazgos', authenticated, searchRateLimit, hallazgos.search);
 
   app.use('/api', (_req, res) => {
     res.status(404).json({

@@ -31,6 +31,16 @@ Publicar hallazgos (US-008: SCRUM-49, API; SCRUM-105, almacenamiento; SCRUM-103,
 - Respuesta 201: `{ message: "Hallazgo publicado correctamente.", hallazgo: { id, estado: "Activo" } }`. Errores 400 de campos incluyen `errors`; también puede responder 401, 403, 413, 415, 429 y 500.
 - Pruebas: `server/tests/hallazgos.test.js` (API), `client/src/PublishFindingPage.test.jsx` (formulario), `server/tests/hallazgos.postgres.test.js` (sesiones reales) y `server/tests/hallazgos-storage.postgres.test.js` (guardado atómico, rasgos separados y fotos sin metadatos).
 
+Buscar hallazgos (US-009: SCRUM-107, API; SCRUM-51, pantalla):
+
+- `GET /api/hallazgos`: con sesión. Solo hallazgos `Activo`, del más reciente al más antiguo. Parámetros opcionales: `q` (palabras de la descripción pública, hasta 100 caracteres; deben aparecer todas, sin distinguir mayúsculas), `categoriaId`, `facultadId`, `fechaDesde` y `fechaHasta` (`AAAA-MM-DD`, fecha del hallazgo, ambas incluidas), `pagina` (desde 1), `tamano` (1–50, por defecto 12) y `corte`. Un parámetro desconocido o repetido responde 400.
+- Respuesta 200: `{ hallazgos: [{ id, categoria: { id, nombre }, facultad: { id, nombre }, descripcion, fechaHallazgo, ubicacion: { latitud, longitud, puntoEntrega }, estado, publicadoEn, imagenes: ["/api/hallazgos/{id}/imagenes/1"] }], paginacion: { pagina, tamano, total, totalPaginas, anterior, siguiente, corte } }`. `anterior` y `siguiente` son números de página o `null`.
+- Paginación: enviar en las páginas siguientes el mismo `corte` que devolvió la primera. Así los hallazgos publicados mientras tanto no desplazan resultados (sin duplicados ni huecos). Una búsqueda nueva o un cambio de filtros se hace sin `corte`.
+- Sin resultados: 200 con `hallazgos: []` y `message` («Todavía no hay hallazgos activos.» o «No hay hallazgos activos que coincidan con la búsqueda.»). Página inexistente: 404 «La página solicitada no existe.» con `errors.pagina`. Filtros no válidos: 400 con `errors` por campo. También 401, 429 y 503.
+- Privacidad: nunca se devuelven rasgos privados, autor ni correo, y los rasgos no son buscables. Las coordenadas se redondean a 3 decimales (unos 100 m).
+- `GET /api/hallazgos/{id}/imagenes/{1-5}`: con sesión; devuelve la foto (JPG/PNG) si el hallazgo sigue Activo, si no 404. Las URL de `imagenes` sirven directamente para `<img src>`.
+- Pruebas: `server/tests/hallazgos-busqueda.test.js` (API y validación) y `server/tests/hallazgos-busqueda.postgres.test.js` (paginación con cero, uno y varios bloques, corte, filtros y estados en PostgreSQL real).
+
 Recuperación de contraseña (SCRUM-43, API; SCRUM-94, pantallas React):
 
 - Arrancar el buzón local con `docker compose up -d mail` y abrir `http://localhost:8025`. Solo captura correos de pruebas; no los entrega por Internet.

@@ -14,6 +14,7 @@ export default defineConfig({
       'server/tests/recovery.test.js',
       'server/tests/recovery-mail.test.js',
       'server/tests/hallazgos.test.js',
+      'server/tests/hallazgos-busqueda.test.js',
       'server/tests/gestion-hallazgos.test.js',
       'client/src/**/*.test.jsx',
     ],
