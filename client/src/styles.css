@@ -62,3 +62,27 @@ footer { padding: 2rem 0; color: #455f58; }
 .coordinate-fields > div { display: grid; min-width: 0; }
 .coordinates button { justify-self: start; }
 .file-list { margin: .4rem 0; padding-left: 1.2rem; font-size: .9rem; overflow-wrap: anywhere; }
+
+/* SCRUM-113 / US-010: mis hallazgos. */
+.my-findings-page { max-width: 48rem; }
+.my-findings { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: .75rem; }
+.my-finding { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) auto; gap: .75rem; align-items: center; border: 1px solid #cbd8d5; border-radius: .5rem; padding: .6rem; }
+.my-finding img, .my-finding-noimage { width: 4.5rem; height: 4.5rem; object-fit: cover; border-radius: .35rem; background: #e8f2ef; }
+.my-finding p { margin: .15rem 0; overflow-wrap: anywhere; }
+.my-finding button { margin: 0; }
+.estado { display: inline-block; padding: .1rem .55rem; border-radius: 999px; font-size: .85rem; font-weight: 650; border: 1px solid currentColor; }
+.estado-activo { color: #085d50; background: #e8f2ef; }
+.estado-devuelto { color: #1f4f8a; background: #e7eef8; }
+.estado-retirado { color: #5b5b5b; background: #efefef; }
+.finding-data { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .35rem 1rem; margin: 1rem 0; }
+.finding-data dt { font-weight: 650; }
+.finding-data dd { margin: 0; overflow-wrap: anywhere; }
+.finding-photos { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.finding-photos img { width: 8rem; height: 8rem; object-fit: cover; border-radius: .35rem; }
+.finding-history { padding-left: 1.2rem; }
+@media (max-width: 30rem) {
+  .my-finding { grid-template-columns: 4.5rem minmax(0, 1fr); }
+  .my-finding button { grid-column: 1 / -1; }
+  .finding-data { grid-template-columns: 1fr; }
+  .finding-data dd { margin-bottom: .4rem; }
+}

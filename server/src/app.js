@@ -226,6 +226,8 @@ export function createApp({
   app.get('/api/hallazgos/:id/imagenes/:posicion',
     (req, _res, next) => next(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.posicion) ? 'route' : undefined),
     authenticated, hallazgos.image);
+  // SCRUM-113 / US-010: listado de los hallazgos propios. Antes de /:id para que «mios» no se tome como id.
+  app.get('/api/hallazgos/mios', authenticated, hallazgos.listOwn);
   // SCRUM-114 / US-010: consulta del detalle de un hallazgo propio.
   app.get('/api/hallazgos/:id', authenticated, hallazgos.getOwn);
   // SCRUM-114 / US-010: acceso privado a imágenes de hallazgos propios.

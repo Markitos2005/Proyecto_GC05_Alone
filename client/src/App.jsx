@@ -7,6 +7,7 @@ import { HomePage } from './HomePage.jsx';
 import { ForgotPasswordForm, ResetPasswordForm } from './RecoveryForms.jsx';
 import { PublishFindingPage } from './PublishFindingPage.jsx';
 import { SearchFindingsPage } from './SearchFindingsPage.jsx';
+import { MyFindingsPage } from './MyFindingsPage.jsx';
 
 /** Navegación de registro, inicio de sesión, perfil y cierre de sesión. */
 export function App() {
@@ -95,6 +96,11 @@ export function App() {
   // US-008: publicar un hallazgo. El backend exige una sesión válida.
   if (hash === '#publicar-hallazgo' && !demo) {
     return <PublishFindingPage />;
+  }
+
+  // US-010: gestionar los hallazgos propios.
+  if (hash === '#mis-hallazgos' && !demo) {
+    return <MyFindingsPage />;
   }
 
   // US-009: buscar hallazgos.

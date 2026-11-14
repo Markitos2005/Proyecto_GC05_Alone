@@ -16,6 +16,7 @@ export function createHallazgoRepository(pool) {
     return {
       getPublicationContext: unavailable,
       publish: unavailable,
+      listOwnHallazgos: unavailable,
       getOwnHallazgo: unavailable,
       updateOwnHallazgo: unavailable,
       changeOwnHallazgoState: unavailable,
@@ -27,6 +28,22 @@ export function createHallazgoRepository(pool) {
   }
 
   return {
+    /** SCRUM-113 / US-010. Hallazgos del autor en cualquier estado, del más reciente al más antiguo. */
+    async listOwnHallazgos(userId) {
+      const { rows } = await pool.query(
+        `SELECT h.id, h.descripcion, to_char(h.fecha_hallazgo, 'YYYY-MM-DD') AS "fechaHallazgo", h.estado,
+                c.nombre AS "categoria", f.nombre AS "facultad", h.created_at AS "publicadoEn",
+                (SELECT i.id FROM hallazgo_imagenes i WHERE i.hallazgo_id = h.id ORDER BY i.posicion LIMIT 1) AS "imagenId"
+           FROM hallazgos h
+           JOIN categorias c ON c.id = h.categoria_id
+           JOIN facultades f ON f.id = h.facultad_id
+          WHERE h.autor_id = $1
+          ORDER BY h.created_at DESC, h.id DESC
+          LIMIT 200`,
+        [userId],
+      );
+      return rows;
+    },
     async getOwnHallazgo(userId, hallazgoId) {
       // Los dos identificadores se comprueban en PostgreSQL.
       // El filtro de autor impide consultar hallazgos ajenos.
@@ -35,7 +52,7 @@ export function createHallazgoRepository(pool) {
                 h.facultad_id AS "facultadId",
                 h.categoria_id AS "categoriaId",
                 h.descripcion,
-                h.fecha_hallazgo AS "fechaHallazgo",
+                to_char(h.fecha_hallazgo, 'YYYY-MM-DD') AS "fechaHallazgo",
                 h.latitud, h.longitud,
                 h.punto_entrega AS "puntoEntrega",
                 h.estado,

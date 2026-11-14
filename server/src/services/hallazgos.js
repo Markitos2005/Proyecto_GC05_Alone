@@ -45,6 +45,17 @@ export function createHallazgoService(storage) {
     return result;
   }
   return {
+    /** SCRUM-113 / US-010. Solo hallazgos propios; la miniatura usa la ruta privada de fotos propias. */
+    async listOwn(userId) {
+      const rows = await storage.listOwnHallazgos(userId);
+      return {
+        hallazgos: rows.map(row => ({
+          id: row.id, descripcion: row.descripcion, fechaHallazgo: row.fechaHallazgo, estado: row.estado,
+          categoria: row.categoria, facultad: row.facultad, publicadoEn: row.publicadoEn,
+          imagen: row.imagenId ? `/api/hallazgos/${row.id}/imagenes/${row.imagenId}` : null,
+        })),
+      };
+    },
     async getOwn(userId, hallazgoId) {
       if (typeof hallazgoId !== 'string' || !validator.isUUID(hallazgoId)) {
         throw new HallazgoError(400, 'El identificador del hallazgo no es válido.');

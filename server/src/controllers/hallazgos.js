@@ -28,6 +28,9 @@ export function receiveHallazgo(req, res, next) {
 
 export function hallazgoController(service) {
   return {
+    listOwn: async (req, res, next) => {
+      try { return res.json(await service.listOwn(req.user.id)); } catch (error) { return next(error); }
+    },
     getOwn: async (req, res, next) => {
       try {
         const result = await service.getOwn(req.user.id, req.params.id);
