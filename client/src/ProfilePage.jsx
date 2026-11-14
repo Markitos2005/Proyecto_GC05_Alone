@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { getProfile, updateProfile } from './api/profile.js';
+import { PasswordForm } from './PasswordForm.jsx';
 
 /**
  * US-005 · Pantalla de perfil.
@@ -14,10 +15,12 @@ export function ProfilePage() {
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [localPassword, setLocalPassword] = useState(true);
   const messageRef = useRef(null);
 
   function load(profile) {
     setEmail(profile.email);
+    setLocalPassword(profile.tieneContrasena !== false);
     setRole(profile.rol);
     setForm({ nombre: profile.nombre, apellidos: profile.apellidos, telefono: profile.telefono ?? '' });
   }
@@ -110,6 +113,9 @@ export function ProfilePage() {
         </form>
 
         <p ref={messageRef} role="status" aria-live="polite" tabIndex="-1" className={message.includes('correctamente') ? 'success' : 'error'}>{message}</p>
+
+        {/* US-006. AC-08: si el perfil indica que la cuenta no tiene contraseña local, no se muestra. */}
+        <PasswordForm localPassword={localPassword} />
       </>}
     </section>
   </main>;

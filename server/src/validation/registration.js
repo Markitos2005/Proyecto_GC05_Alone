@@ -16,7 +16,7 @@ export function validateRequiredText(value, { max, required }) {
   return { text };
 }
 
-/** Reglas compartidas por registro y recuperación. No recortar la contraseña. */
+/** Reglas compartidas por registro, recuperación y cambio de contraseña. No recortar la contraseña. */
 export function validatePassword(password) {
   if (typeof password !== 'string' || !password) return 'La contraseña es obligatoria.';
   if ([...password].length < 8 || !/\p{L}/u.test(password) || !/[0-9]/.test(password)) {
