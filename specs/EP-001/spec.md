@@ -195,6 +195,11 @@ Como usuario autenticado, quiero cambiar mi contraseña desde mi perfil, para ma
 - Utilizar únicamente datos ficticios o sintéticos durante las pruebas.
 - Cumplir R-03, R-04, R-05, R-06, R-07, R-08 y R-09.
 
+#### Aclaraciones del Product Owner
+
+- Después de 5 intentos fallidos seguidos con la contraseña actual, hay que esperar 15 minutos para volver a intentarlo.
+- Validado por el Product Owner el 14/11/2026: cumple los criterios de aceptación. El AC-08 no se aplica porque la US-007 (inicio de sesión con OAuth) se ha descartado y todas las cuentas tienen contraseña local.
+
 ### US-007 — Inicio de sesión alternativo mediante OAuth
 
 Como usuario, quiero iniciar sesión mediante una cuenta de Microsoft (preferiblemente asociada a la Universidad de Extremadura), para acceder sin introducir credenciales locales.

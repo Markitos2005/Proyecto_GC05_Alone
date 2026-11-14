@@ -9,6 +9,7 @@ export default defineConfig({
       'server/tests/login.test.js',
       'server/tests/profile.test.js',
       'server/tests/logout.test.js',
+      'server/tests/password.test.js',
       'server/tests/recovery-tokens.test.js',
       'server/tests/recovery.test.js',
       'server/tests/recovery-mail.test.js',
