@@ -16,8 +16,9 @@ export function validateRequiredText(value, { max, required }) {
   return { text };
 }
 
-/** Reglas de fortaleza comunes al registro y al cambio de contraseña. Devuelve el error o null. */
-export function passwordStrengthError(password) {
+/** Reglas compartidas por registro, recuperación y cambio de contraseña. No recortar la contraseña. */
+export function validatePassword(password) {
+  if (typeof password !== 'string' || !password) return 'La contraseña es obligatoria.';
   if ([...password].length < 8 || !/\p{L}/u.test(password) || !/[0-9]/.test(password)) {
     return 'Usa al menos 8 caracteres, una letra y un número.';
   }
@@ -34,8 +35,8 @@ export function validateRegistration(body) {
   else if (email.length > 254 || !validator.isEmail(email, { allow_utf8_local_part: false })) {
     errors.email = 'El formato del correo no es válido.';
   }
-  if (!password) errors.password = 'La contraseña es obligatoria.';
-  else if (passwordStrengthError(password)) errors.password = passwordStrengthError(password);
+  const passwordError = validatePassword(password);
+  if (passwordError) errors.password = passwordError;
   const nombre = validateRequiredText(body?.nombre, TEXT_FIELDS.nombre);
   if (nombre.error) errors.nombre = nombre.error;
   const apellidos = validateRequiredText(body?.apellidos, TEXT_FIELDS.apellidos);
