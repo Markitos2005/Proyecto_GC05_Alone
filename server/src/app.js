@@ -26,7 +26,7 @@ import { RecoveryError } from './services/recovery.js';
 import { recoveryController } from './controllers/recovery.js';
 import { createHallazgoService, HallazgoError } from './services/hallazgos.js';
 import { createHallazgoRepository } from './repositories/hallazgos.js';
-import { hallazgoController, requireConserje, receiveHallazgo } from './controllers/hallazgos.js';
+import { hallazgoController, receiveHallazgo } from './controllers/hallazgos.js';
 
 /** App independiente del puerto y de la conexión a PostgreSQL. */
 export function createApp({
@@ -216,10 +216,11 @@ export function createApp({
       express.json({ limit: '16kb', strict: true }), recoveryController(recovery, action));
   }
 
-  // SCRUM-49: autenticación y permisos antes de recibir buffers de fotos.
+  // SCRUM-49 / SCRUM-103: cualquier cuenta autenticada y activa publica hallazgos.
+  // Autenticación y origen se comprueban antes de recibir los buffers de las fotos.
   const hallazgos = hallazgoController(createHallazgoService(hallazgoStorage));
-  app.get('/api/hallazgos/opciones', authenticated, requireConserje, hallazgos.options);
-  app.post('/api/hallazgos', authenticated, requireConserje, requireSameOrigin,
+  app.get('/api/hallazgos/opciones', authenticated, hallazgos.options);
+  app.post('/api/hallazgos', authenticated, requireSameOrigin,
     rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false,
       message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
     receiveHallazgo, hallazgos.publish);

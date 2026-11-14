@@ -5,6 +5,7 @@ import { LoginForm } from './LoginForm.jsx';
 import { ProfilePage } from './ProfilePage.jsx';
 import { HomePage } from './HomePage.jsx';
 import { ForgotPasswordForm, ResetPasswordForm } from './RecoveryForms.jsx';
+import { PublishFindingPage } from './PublishFindingPage.jsx';
 
 /** Navegación de registro, inicio de sesión, perfil y cierre de sesión. */
 export function App() {
@@ -88,6 +89,11 @@ export function App() {
   // No se permite consultar el perfil desde la demostración.
   if (hash === '#perfil' && !demo) {
     return <ProfilePage />;
+  }
+
+  // US-008: publicar un hallazgo. El backend exige una sesión válida.
+  if (hash === '#publicar-hallazgo' && !demo) {
+    return <PublishFindingPage />;
   }
 
   // Portada pública o pantalla del usuario autenticado.

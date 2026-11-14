@@ -1,14 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { HallazgoError } from '../services/hallazgos.js';
 
-// Asignación REAL y vigente del Conserje, nunca una facultad enviada por el navegador.
-const ASIGNACION_VIGENTE = `
-  FROM usuarios u
-  JOIN asignaciones_conserje a ON a.usuario_id = u.id
-  JOIN facultades f ON f.id = a.facultad_id
-  WHERE u.id = $1 AND u.activo AND u.rol = 'CONSERJE'`;
-
-/** SCRUM-105. Almacenamiento de hallazgos, rasgos privados y fotos en PostgreSQL. */
+/** SCRUM-105. Almacenamiento de hallazgos, rasgos privados y fotos en PostgreSQL.
+ * Cualquier cuenta activa puede publicar (SCRUM-103); la tabla asignaciones_conserje
+ * queda preparada para cuando la publicación se reserve a Conserjería (US-025). */
 export function createHallazgoRepository(pool) {
   if (!pool) {
     // Sin base de datos (p. ej. pruebas que no la configuran): respuesta explícita, nunca éxito simulado.
@@ -20,12 +15,11 @@ export function createHallazgoRepository(pool) {
 
   return {
     async getPublicationContext(userId) {
-      const { rows: [facultad] } = await pool.query(`SELECT f.id, f.nombre, f.activo ${ASIGNACION_VIGENTE}`, [userId]);
-      if (!facultad) return null;
-      const { rows: categorias } = await pool.query(
-        'SELECT id, nombre, activo FROM categorias WHERE activo ORDER BY nombre',
-      );
-      return { facultad, categorias };
+      const { rowCount } = await pool.query('SELECT 1 FROM usuarios WHERE id = $1 AND activo', [userId]);
+      if (!rowCount) return null;
+      const { rows: facultades } = await pool.query('SELECT id, nombre, activo FROM facultades WHERE activo ORDER BY nombre');
+      const { rows: categorias } = await pool.query('SELECT id, nombre, activo FROM categorias WHERE activo ORDER BY nombre');
+      return { facultades, categorias };
     },
 
     /** Guarda TODO o NADA: hallazgo, rasgos privados y fotos en una única transacción. */
@@ -33,17 +27,22 @@ export function createHallazgoRepository(pool) {
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        // Volver a comprobar rol, asignación y categoría dentro de la transacción y
-        // bloquearlos frente a cambios simultáneos hasta el COMMIT.
-        const { rows: [vigente] } = await client.query(
-          `SELECT f.id ${ASIGNACION_VIGENTE} AND f.id = $2 AND f.activo FOR SHARE OF u, a, f`,
-          [input.autorId, input.facultadId],
+        // Volver a comprobar cuenta, facultad y categoría dentro de la transacción y
+        // bloquearlas frente a cambios simultáneos hasta el COMMIT.
+        const { rowCount: cuenta } = await client.query(
+          'SELECT 1 FROM usuarios WHERE id = $1 AND activo FOR SHARE', [input.autorId],
         );
-        if (!vigente) throw new HallazgoError(403, 'Necesitas una facultad activa asignada para publicar hallazgos.');
+        if (!cuenta) throw new HallazgoError(403, 'Tu cuenta no puede publicar hallazgos.');
 
-        const { rows: [categoria] } = await client.query(
-          'SELECT id FROM categorias WHERE id = $1 AND activo FOR SHARE',
-          [input.categoriaId],
+        const { rowCount: facultad } = await client.query(
+          'SELECT 1 FROM facultades WHERE id = $1 AND activo FOR SHARE', [input.facultadId],
+        );
+        if (!facultad) {
+          throw new HallazgoError(400, 'Selecciona una facultad activa.', { facultadId: 'La facultad no existe o está inactiva.' });
+        }
+
+        const { rowCount: categoria } = await client.query(
+          'SELECT 1 FROM categorias WHERE id = $1 AND activo FOR SHARE', [input.categoriaId],
         );
         if (!categoria) {
           throw new HallazgoError(400, 'Selecciona una categoría activa.', { categoriaId: 'La categoría no existe o está inactiva.' });

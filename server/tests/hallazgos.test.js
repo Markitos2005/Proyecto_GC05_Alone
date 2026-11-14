@@ -8,7 +8,7 @@ import { HALLAZGO_MAX_IMAGE_BYTES } from '../src/validation/hallazgos.js';
 
 const category = '11111111-1111-4111-8111-111111111111';
 const faculty = '22222222-2222-4222-8222-222222222222';
-const data = { categoriaId: category, descripcion: 'Mochila ficticia', fechaHallazgo: '2026-01-01', latitud: 0, longitud: 0, puntoEntrega: 'Conserjería ficticia', rasgosPrivados: 'Marca privada ficticia' };
+const data = { facultadId: faculty, categoriaId: category, descripcion: 'Mochila ficticia', fechaHallazgo: '2026-01-01', latitud: 0, longitud: 0, puntoEntrega: 'Conserjería ficticia', rasgosPrivados: 'Marca privada ficticia' };
 let png, jpg, hash;
 beforeAll(async () => {
   png = await sharp({ create: { width: 2, height: 2, channels: 3, background: 'red' } }).png().toBuffer();
@@ -16,11 +16,11 @@ beforeAll(async () => {
   hash = await argon2.hash('Prueba1234');
 });
 
-async function fixture({ role = 'CONSERJE', context, unavailable = false } = {}) {
-  const user = { id: '33333333-3333-4333-8333-333333333333', email: 'conserje@example.com', rol: role, activo: true, password_hash: hash };
+async function fixture({ role = 'USUARIO', context, unavailable = false } = {}) {
+  const user = { id: '33333333-3333-4333-8333-333333333333', email: 'persona@example.com', rol: role, activo: true, password_hash: hash };
   const users = { findByEmail: async () => user, findById: async () => user };
   const storage = {
-    getPublicationContext: vi.fn(async () => context === undefined ? { facultad: { id: faculty, nombre: 'Facultad ficticia', activo: true }, categorias: [{ id: category, nombre: 'Categoría ficticia', activo: true }] } : context),
+    getPublicationContext: vi.fn(async () => context === undefined ? { facultades: [{ id: faculty, nombre: 'Facultad ficticia', activo: true }], categorias: [{ id: category, nombre: 'Categoría ficticia', activo: true }] } : context),
     publish: vi.fn(async () => ({ id: 'nuevo-hallazgo', rasgosPrivados: 'NO DEVOLVER', password_hash: 'NO DEVOLVER' })),
   };
   const app = createApp({ users, ...(unavailable ? {} : { hallazgoStorage: storage }),
@@ -43,29 +43,40 @@ describe('SCRUM-49: publicación HTTP de hallazgos', () => {
     expect((await request(app).post('/api/hallazgos').send({})).status).toBe(401);
     expect((await request(app).get('/api/hallazgos/opciones')).status).toBe(401);
   });
-  it.each(['USUARIO', 'ADMINISTRADOR'])('rol %s no puede publicar ni obtener opciones', async (role) => {
+  it.each(['USUARIO', 'CONSERJE', 'ADMINISTRADOR'])('SCRUM-103: el rol %s puede obtener opciones y publicar', async (role) => {
     const { agent, storage } = await fixture({ role });
-    expect((await post(agent)).status).toBe(403);
-    expect((await agent.get('/api/hallazgos/opciones')).status).toBe(403);
+    expect((await agent.get('/api/hallazgos/opciones')).status).toBe(200);
+    expect((await post(agent)).status).toBe(201);
+    expect(storage.publish).toHaveBeenCalledOnce();
+  });
+  it('una cuenta desactivada tras iniciar sesión ya no publica', async () => {
+    const { agent, user, storage } = await fixture();
+    user.activo = false;
+    expect((await post(agent)).status).toBe(401);
     expect(storage.publish).not.toHaveBeenCalled();
   });
-  it('comprueba el rol actual, no solo el guardado al iniciar sesión', async () => {
-    const { agent, user } = await fixture();
-    user.rol = 'USUARIO';
+  it('si el almacenamiento no reconoce la cuenta, no publica', async () => {
+    const { agent, storage } = await fixture({ context: null });
     expect((await post(agent)).status).toBe(403);
+    expect(storage.publish).not.toHaveBeenCalled();
   });
-  it.each([null, { facultad: { id: faculty, activo: false }, categorias: [] }])('sin facultad activa no publica', async context => {
+  it.each([
+    [{ facultades: [{ id: faculty, activo: false }], categorias: [{ id: category, activo: true }] }, 'facultadId'],
+    [{ facultades: [], categorias: [{ id: category, activo: true }] }, 'facultadId'],
+  ])('rechaza facultad inexistente o inactiva', async (context, field) => {
     const { agent, storage } = await fixture({ context });
-    expect((await post(agent)).status).toBe(403);
+    const result = await post(agent);
+    expect(result.status).toBe(400);
+    expect(result.body.errors).toHaveProperty(field);
     expect(storage.publish).not.toHaveBeenCalled();
   });
-  it('opciones solo devuelve facultad y categorías activas, sin campos privados', async () => {
-    const { agent } = await fixture({ context: { facultad: { id: faculty, nombre: 'Ficticia', activo: true, secreto: 'privado' }, categorias: [{ id: category, nombre: 'Activa', activo: true, secreto: 'privado' }, { id: 'inactiva', activo: false }] } });
+  it('opciones solo devuelve facultades y categorías activas, sin campos privados', async () => {
+    const { agent } = await fixture({ context: { facultades: [{ id: faculty, nombre: 'Ficticia', activo: true, secreto: 'privado' }, { id: 'inactiva', activo: false }], categorias: [{ id: category, nombre: 'Activa', activo: true, secreto: 'privado' }, { id: 'inactiva', activo: false }] } });
     const result = await agent.get('/api/hallazgos/opciones');
     expect(result.status).toBe(200);
-    expect(result.body).toEqual({ facultad: { id: faculty, nombre: 'Ficticia' }, categorias: [{ id: category, nombre: 'Activa' }] });
+    expect(result.body).toEqual({ facultades: [{ id: faculty, nombre: 'Ficticia' }], categorias: [{ id: category, nombre: 'Activa' }] });
   });
-  it('acepta PNG real, fija autor/facultad/estado y nunca devuelve datos privados', async () => {
+  it('acepta PNG real, fija autor y estado y nunca devuelve datos privados', async () => {
     const { agent, storage, user } = await fixture();
     const result = await post(agent);
     expect(result.status).toBe(201);
@@ -85,14 +96,14 @@ describe('SCRUM-49: publicación HTTP de hallazgos', () => {
     ['descripcion', ''], ['descripcion', 'a'.repeat(2001)], ['categoriaId', 'incorrecta'],
     ['fechaHallazgo', '2026-02-30'], ['fechaHallazgo', '2999-01-01'], ['fechaHallazgo', 'no-fecha'],
     ['latitud', 91], ['latitud', -91], ['latitud', '0'], ['longitud', 181], ['longitud', -181], ['longitud', null],
-    ['puntoEntrega', 42], ['rasgosPrivados', 'a'.repeat(2001)], ['autorId', 'otro'], ['facultadId', 'otra'], ['estado', 'Devuelto'],
+    ['puntoEntrega', 42], ['rasgosPrivados', 'a'.repeat(2001)], ['autorId', 'otro'], ['facultadId', 'otra'], ['facultadId', undefined], ['estado', 'Devuelto'],
   ])('rechaza %s inválido sin guardar nada', async (field, value) => {
     const { agent, storage } = await fixture();
     expect((await post(agent, { ...data, [field]: value })).status).toBe(400);
     expect(storage.publish).not.toHaveBeenCalled();
   });
   it('rechaza categoría inexistente o inactiva', async () => {
-    const { agent, storage } = await fixture({ context: { facultad: { id: faculty, activo: true }, categorias: [{ id: category, activo: false }] } });
+    const { agent, storage } = await fixture({ context: { facultades: [{ id: faculty, activo: true }], categorias: [{ id: category, activo: false }] } });
     expect((await post(agent)).status).toBe(400);
     expect(storage.publish).not.toHaveBeenCalled();
   });
@@ -144,7 +155,7 @@ describe('SCRUM-49: publicación HTTP de hallazgos', () => {
     const metadata = await sharp(storage.publish.mock.calls[0][0].imagenes[0].buffer).metadata();
     expect(metadata.exif).toBeUndefined();
   });
-  it('si falta SCRUM-105 devuelve 503, nunca éxito ficticio', async () => {
+  it('sin almacenamiento configurado devuelve 503, nunca éxito ficticio', async () => {
     const { agent } = await fixture({ unavailable: true });
     expect((await post(agent)).status).toBe(503);
     expect((await agent.get('/api/hallazgos/opciones')).status).toBe(503);
