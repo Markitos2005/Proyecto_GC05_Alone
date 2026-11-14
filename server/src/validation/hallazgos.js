@@ -6,12 +6,15 @@ export const HALLAZGO_MAX_IMAGES = 5;
 export const HALLAZGO_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 // Límites técnicos del contrato de esta API, no nuevas estimaciones ni requisitos del profesor.
 export const HALLAZGO_TEXT_MAX = 2000;
-const allowedFields = ['categoriaId', 'descripcion', 'fechaHallazgo', 'latitud', 'longitud', 'puntoEntrega', 'rasgosPrivados'];
+const allowedFields = ['facultadId', 'categoriaId', 'descripcion', 'fechaHallazgo', 'latitud', 'longitud', 'puntoEntrega', 'rasgosPrivados'];
 
 export function validateHallazgo(data, today = new Date().toISOString().slice(0, 10)) {
   const errors = {};
   if (!data || typeof data !== 'object' || Array.isArray(data)) return { errors: { datos: 'Envía un objeto JSON en el campo datos.' } };
-  if (Object.keys(data).some(key => !allowedFields.includes(key))) errors.datos = 'Hay campos no permitidos. El autor, la facultad y el estado los decide el servidor.';
+  if (Object.keys(data).some(key => !allowedFields.includes(key))) errors.datos = 'Hay campos no permitidos. El autor y el estado los decide el servidor.';
+  // US-008: cualquier usuario autenticado publica y elige la facultad donde entrega el objeto.
+  const facultadId = typeof data.facultadId === 'string' ? data.facultadId : '';
+  if (!validator.isUUID(facultadId)) errors.facultadId = 'Selecciona una facultad válida.';
   const categoriaId = typeof data.categoriaId === 'string' ? data.categoriaId : '';
   if (!validator.isUUID(categoriaId)) errors.categoriaId = 'Selecciona una categoría válida.';
   const descripcion = typeof data.descripcion === 'string' ? data.descripcion.trim() : '';
@@ -30,7 +33,7 @@ export function validateHallazgo(data, today = new Date().toISOString().slice(0,
     if (data[field] !== undefined && (typeof data[field] !== 'string' || [...data[field]].length > HALLAZGO_TEXT_MAX)) errors[field] = 'Debe ser un texto de hasta 2000 caracteres.';
     optional[field] = typeof data[field] === 'string' ? data[field].trim() : '';
   }
-  return { errors, value: { categoriaId, descripcion, fechaHallazgo, latitud: data.latitud, longitud: data.longitud, ...optional } };
+  return { errors, value: { facultadId, categoriaId, descripcion, fechaHallazgo, latitud: data.latitud, longitud: data.longitud, ...optional } };
 }
 
 /** Decodifica y vuelve a codificar: no confiar solo en extensión o MIME declarado. */

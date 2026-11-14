@@ -7,7 +7,8 @@ const upload = multer({
   limits: { files: HALLAZGO_MAX_IMAGES, fileSize: HALLAZGO_MAX_IMAGE_BYTES, fields: 1, fieldSize: 32768, parts: 7 },
 }).array('imagenes', HALLAZGO_MAX_IMAGES);
 
-/** Se ejecuta DESPUÉS de requireAuth, antes de procesar imágenes. */
+/** Sin usar por ahora: US-008 permite publicar a cualquier usuario autenticado.
+ * Se reutilizará si la publicación vuelve a reservarse a Conserjería (US-025). */
 export function requireConserje(req, res, next) {
   if (req.user?.rol !== 'CONSERJE') return res.status(403).json({ message: 'Solo Conserjería puede publicar hallazgos.' });
   return next();

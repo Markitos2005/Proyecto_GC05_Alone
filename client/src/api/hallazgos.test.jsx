@@ -24,7 +24,7 @@ it('obtiene opciones con la cookie de sesión', async () => {
   await getHallazgoOptions();
   expect(fetch).toHaveBeenCalledWith('/api/hallazgos/opciones', { credentials: 'same-origin' });
 });
-it.each([400, 401, 403, 413, 415, 429, 503, 500])('controla HTTP %s y facilita errores de campo a Raúl', async status => {
+it.each([400, 401, 403, 413, 415, 429, 503, 500])('controla HTTP %s y facilita los errores de campo', async status => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status, json: async () => ({ message: 'secreto interno', errors: { descripcion: 'Revisa el texto' } }) }));
   await expect(getHallazgoOptions()).rejects.toMatchObject({ status, errors: { descripcion: 'Revisa el texto' } });
   await expect(getHallazgoOptions()).rejects.not.toThrow('secreto interno');

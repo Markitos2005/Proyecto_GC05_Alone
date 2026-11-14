@@ -26,28 +26,27 @@ test('SCRUM-105: hallazgos, rasgos privados y fotos guardados de forma atómica 
       await pool.query(await readFile(new URL(`../db/migrations/${name}`, import.meta.url), 'utf8'));
     }
     const storage = createHallazgoRepository(pool);
-    const conserje = randomUUID();
-    const usuario = randomUUID();
+    const autor = randomUUID();
+    const desactivado = randomUUID();
     const facultad = randomUUID();
     const otraFacultad = randomUUID();
     const categoria = randomUUID();
     const inactiva = randomUUID();
     const password = await hashPassword('Prueba1234');
     await pool.query(
-      'INSERT INTO usuarios (id, email, password_hash, nombre, apellidos, rol) VALUES ($1, $2, $3, $4, $5, $6), ($7, $8, $3, $4, $5, $9)',
-      [conserje, 'conserje@example.com', password, 'Persona', 'Ficticia', 'CONSERJE', usuario, 'usuario@example.com', 'USUARIO'],
+      'INSERT INTO usuarios (id, email, password_hash, nombre, apellidos, activo) VALUES ($1, $2, $3, $4, $5, TRUE), ($6, $7, $3, $4, $5, FALSE)',
+      [autor, 'persona@example.com', password, 'Persona', 'Ficticia', desactivado, 'baja@example.com'],
     );
-    await pool.query('INSERT INTO facultades (id, nombre) VALUES ($1, $2), ($3, $4)',
+    await pool.query('INSERT INTO facultades (id, nombre, activo) VALUES ($1, $2, TRUE), ($3, $4, FALSE)',
       [facultad, 'Facultad Ficticia A', otraFacultad, 'Facultad Ficticia B']);
     await pool.query('INSERT INTO categorias (id, nombre, activo) VALUES ($1, $2, TRUE), ($3, $4, FALSE)',
       [categoria, 'Categoría ficticia', inactiva, 'Categoría retirada']);
-    await pool.query('INSERT INTO asignaciones_conserje (usuario_id, facultad_id) VALUES ($1, $2)', [conserje, facultad]);
 
     const count = async (table) => (await pool.query(`SELECT count(*)::int AS n FROM ${table}`)).rows[0].n;
     const photo = (background) => sharp({ create: { width: 4, height: 4, channels: 3, background } })
       .withExif({ IFD0: { Copyright: 'Metadato ficticio' } }).jpeg().toBuffer();
     const datos = {
-      categoriaId: categoria, descripcion: '  Mochila ficticia de color azul  ', fechaHallazgo: '2026-01-01',
+      facultadId: facultad, categoriaId: categoria, descripcion: '  Mochila ficticia de color azul  ', fechaHallazgo: '2026-01-01',
       latitud: 39.4789, longitud: -6.3424, puntoEntrega: 'Conserjería ficticia', rasgosPrivados: 'Llavero ficticio dentro',
     };
     const app = createApp({
@@ -56,7 +55,7 @@ test('SCRUM-105: hallazgos, rasgos privados y fotos guardados de forma atómica 
       hallazgoStorage: storage,
     });
     const agent = request.agent(app);
-    assert.equal((await agent.post('/api/auth/login').send({ email: 'conserje@example.com', password: 'Prueba1234' })).status, 200);
+    assert.equal((await agent.post('/api/auth/login').send({ email: 'persona@example.com', password: 'Prueba1234' })).status, 200);
     const publish = (body = datos, photos = 2) => {
       let req = agent.post('/api/hallazgos').set('Origin', ORIGIN).field('datos', JSON.stringify(body));
       return Promise.all(Array.from({ length: photos }, (_, i) => photo(i ? 'red' : 'blue'))).then((buffers) => {
@@ -65,22 +64,22 @@ test('SCRUM-105: hallazgos, rasgos privados y fotos guardados de forma atómica 
       });
     };
 
-    await t.test('contexto: solo la facultad asignada y las categorías activas', async () => {
-      assert.equal(await storage.getPublicationContext(usuario), null);
+    await t.test('SCRUM-103: un usuario normal ve las facultades y categorías activas', async () => {
+      assert.equal(await storage.getPublicationContext(desactivado), null);
       const result = await agent.get('/api/hallazgos/opciones');
       assert.equal(result.status, 200);
       assert.deepEqual(result.body, {
-        facultad: { id: facultad, nombre: 'Facultad Ficticia A' },
+        facultades: [{ id: facultad, nombre: 'Facultad Ficticia A' }],
         categorias: [{ id: categoria, nombre: 'Categoría ficticia' }],
       });
     });
 
-    await t.test('AC-05/AC-06: guarda el hallazgo Activo del autor, rasgos aparte y fotos sin metadatos', async () => {
+    await t.test('AC-05/AC-06: un usuario normal publica; hallazgo Activo del autor, rasgos aparte y fotos sin metadatos', async () => {
       const result = await publish();
       assert.equal(result.status, 201);
       const { id } = result.body.hallazgo;
       const { rows: [hallazgo] } = await pool.query('SELECT * FROM hallazgos WHERE id = $1', [id]);
-      assert.equal(hallazgo.autor_id, conserje);
+      assert.equal(hallazgo.autor_id, autor);
       assert.equal(hallazgo.facultad_id, facultad);
       assert.equal(hallazgo.categoria_id, categoria);
       assert.equal(hallazgo.estado, 'Activo');
@@ -115,25 +114,28 @@ test('SCRUM-105: hallazgos, rasgos privados y fotos guardados de forma atómica 
       const before = [await count('hallazgos'), await count('hallazgo_imagenes'), await count('hallazgo_rasgos_privados')];
       const good = { buffer: await photo('blue'), mime: 'image/jpeg' };
       await assert.rejects(storage.publish({
-        ...datos, autorId: conserje, facultadId: facultad, estado: 'Activo',
+        ...datos, autorId: autor, estado: 'Activo',
         imagenes: [good, { buffer: Buffer.from('x'), mime: 'image/gif' }],
       }), { code: '23514' });
       assert.deepEqual([await count('hallazgos'), await count('hallazgo_imagenes'), await count('hallazgo_rasgos_privados')], before);
     });
 
-    await t.test('revalida en la transacción: categoría inactiva, otra facultad o rol retirado', async () => {
+    await t.test('revalida en la transacción: categoría o facultad inactivas y cuenta desactivada', async () => {
       const before = await count('hallazgos');
-      const base = { ...datos, autorId: conserje, facultadId: facultad, estado: 'Activo', imagenes: [{ buffer: await photo('blue'), mime: 'image/jpeg' }] };
-      await assert.rejects(storage.publish({ ...base, categoriaId: inactiva }), { status: 400 });
-      await assert.rejects(storage.publish({ ...base, facultadId: otraFacultad }), { status: 403 });
-      await assert.rejects(storage.publish({ ...base, autorId: usuario }), { status: 403 });
+      const base = { ...datos, autorId: autor, estado: 'Activo', imagenes: [{ buffer: await photo('blue'), mime: 'image/jpeg' }] };
+      await assert.rejects(storage.publish({ ...base, categoriaId: inactiva }), { status: 400, errors: { categoriaId: 'La categoría no existe o está inactiva.' } });
+      await assert.rejects(storage.publish({ ...base, facultadId: otraFacultad }), { status: 400, errors: { facultadId: 'La facultad no existe o está inactiva.' } });
+      await assert.rejects(storage.publish({ ...base, facultadId: randomUUID() }), { status: 400 });
+      await assert.rejects(storage.publish({ ...base, autorId: desactivado }), { status: 403 });
       assert.equal(await count('hallazgos'), before);
     });
 
-    await t.test('facultad desactivada: el Conserje no puede publicar', async () => {
+    await t.test('facultad desactivada: desaparece de las opciones y no se puede publicar en ella', async () => {
       await pool.query('UPDATE facultades SET activo = FALSE WHERE id = $1', [facultad]);
-      assert.equal((await agent.get('/api/hallazgos/opciones')).status, 403);
-      assert.equal((await publish()).status, 403);
+      assert.deepEqual((await agent.get('/api/hallazgos/opciones')).body.facultades, []);
+      const result = await publish();
+      assert.equal(result.status, 400);
+      assert.ok(result.body.errors.facultadId);
       await pool.query('UPDATE facultades SET activo = TRUE WHERE id = $1', [facultad]);
     });
 
@@ -141,7 +143,7 @@ test('SCRUM-105: hallazgos, rasgos privados y fotos guardados de forma atómica 
       const insert = (lat, estado) => pool.query(
         `INSERT INTO hallazgos (id, autor_id, facultad_id, categoria_id, descripcion, fecha_hallazgo, latitud, longitud, estado)
          VALUES ($1, $2, $3, $4, 'Objeto ficticio', '2026-01-01', $5, 0, $6)`,
-        [randomUUID(), conserje, facultad, categoria, lat, estado],
+        [randomUUID(), autor, facultad, categoria, lat, estado],
       );
       await assert.rejects(insert(91, 'Activo'), { code: '23514' });
       await assert.rejects(insert(0, 'Perdido'), { code: '23514' });
