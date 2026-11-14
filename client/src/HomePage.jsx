@@ -124,11 +124,18 @@ export function HomePage({
                 </a>
               </p>
             ) : title === 'Objetos encontrados' && user && !demo ? (
-              <p>
-                <a href="#publicar-hallazgo">
-                  Publicar un hallazgo
-                </a>
-              </p>
+              <>
+                <p>
+                  <a href="#buscar-hallazgos">
+                    Buscar hallazgos
+                  </a>
+                </p>
+                <p>
+                  <a href="#publicar-hallazgo">
+                    Publicar un hallazgo
+                  </a>
+                </p>
+              </>
             ) : (
               <p className="help">{status}</p>
             )}
