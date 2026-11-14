@@ -38,6 +38,7 @@ export function createApp({
   registrationLimit = 20,
   loginLimit = 10,
   passwordLimit = 20,
+  searchLimit = 120,
   logError = () => console.error('Error interno de la aplicación.'),
 }) {
   const app = express();
@@ -224,6 +225,12 @@ export function createApp({
     rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false,
       message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
     receiveHallazgo, hallazgos.publish);
+
+  // SCRUM-107 / US-009: búsqueda paginada de hallazgos Activos y sus fotos públicas, con sesión.
+  const searchRateLimit = rateLimit({ windowMs: 60 * 1000, limit: searchLimit, standardHeaders: 'draft-7', legacyHeaders: false,
+    message: { message: 'Demasiadas búsquedas. Inténtalo dentro de un momento.' } });
+  app.get('/api/hallazgos', authenticated, searchRateLimit, hallazgos.search);
+  app.get('/api/hallazgos/:id/imagenes/:posicion', authenticated, hallazgos.image);
 
   app.use('/api', (_req, res) => {
     res.status(404).json({
