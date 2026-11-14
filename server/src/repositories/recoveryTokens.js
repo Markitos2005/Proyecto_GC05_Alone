@@ -18,6 +18,15 @@ export function createRecoveryTokenRepository(pool) {
   }
 
   return {
+    async isValid(tokenHash) {
+      const result = await pool.query(
+        `SELECT 1 FROM recuperacion_tokens t JOIN usuarios u ON u.id = t.usuario_id
+         WHERE t.token_hash = $1 AND t.expires_at > clock_timestamp()
+         AND u.activo = TRUE AND u.password_hash IS NOT NULL`, [tokenHash],
+      );
+      return result.rowCount > 0;
+    },
+
     issue({ email, emailHash, tokenHash }) {
       return transaction(async (client) => {
         // Serializa también las solicitudes simultáneas para un correo inexistente.

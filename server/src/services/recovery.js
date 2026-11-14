@@ -14,6 +14,13 @@ export class RecoveryError extends Error {
 /** SCRUM-43: los tokens y contraseñas nunca forman parte de respuestas ni logs. */
 export function createRecoveryService({ tokens, sendRecovery, logError = () => {} }) {
   return {
+    async validate(body) {
+      if (!await tokens.isValid(body?.token)) {
+        throw new RecoveryError(400, 'Enlace expirado o no válido. Solicita uno nuevo.');
+      }
+      return { message: 'Enlace válido.' };
+    },
+
     async request(body) {
       const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
       if (!email || email.length > 254 || !validator.isEmail(email, { allow_utf8_local_part: false })) {

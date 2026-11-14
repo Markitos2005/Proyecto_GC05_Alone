@@ -7,6 +7,7 @@ import { createRecoveryService, RECOVERY_CONFIRMATION } from '../src/services/re
 function fixture({ eligible = true, recoveryLimit = 100 } = {}) {
   const client = { query: vi.fn(async () => ({ rowCount: 1 })) };
   const tokens = {
+    isValid: vi.fn(async () => true),
     issue: vi.fn(async () => eligible ? { email: 'persona@example.com', token: 'a'.repeat(64) } : null),
     consume: vi.fn(async (_token, apply) => { await apply(client, 'usuario-ficticio'); return true; }),
   };
@@ -18,6 +19,20 @@ function fixture({ eligible = true, recoveryLimit = 100 } = {}) {
 }
 
 describe('SCRUM-43: API de recuperación', () => {
+  it('comprueba un enlace sin consumirlo ni revelar datos de cuenta', async () => {
+    const { app, tokens } = fixture();
+    const response = await request(app).post('/api/auth/validate-reset-token').send({ token: 'a'.repeat(64) });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ message: 'Enlace válido.' });
+    expect(tokens.consume).not.toHaveBeenCalled();
+  });
+  it('comprobación rechaza enlaces no vigentes', async () => {
+    const { app, tokens } = fixture();
+    tokens.isValid.mockResolvedValueOnce(false);
+    const response = await request(app).post('/api/auth/validate-reset-token').send({ token: 'a'.repeat(64) });
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain('Enlace expirado o no válido');
+  });
   it('normaliza correo y responde sin exponer token ni cuenta', async () => {
     const { app, tokens, sendRecovery } = fixture();
     const response = await request(app).post('/api/auth/forgot-password').send({ email: ' Persona@EXAMPLE.com ' });

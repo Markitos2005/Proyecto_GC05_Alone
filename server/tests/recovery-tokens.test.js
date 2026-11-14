@@ -2,6 +2,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { createRecoveryTokens, recoveryDigest } from '../src/services/recoveryTokens.js';
 
 describe('SCRUM-96: tokens internos de recuperación', () => {
+  it('la comprobación solo consulta el hash sin consumir el token', async () => {
+    const isValid = vi.fn(async () => true);
+    expect(await createRecoveryTokens({ isValid }).isValid('a'.repeat(64))).toBe(true);
+    expect(isValid).toHaveBeenCalledWith(recoveryDigest('a'.repeat(64)));
+    expect(await createRecoveryTokens({ isValid }).isValid('incorrecto')).toBe(false);
+    expect(isValid).toHaveBeenCalledTimes(1);
+  });
   it('normaliza el correo y entrega al repositorio solo hashes del token y correo', async () => {
     const repository = { issue: vi.fn(async () => ({ email: 'persona@example.com', expiresAt: new Date() })) };
     const service = createRecoveryTokens(repository);

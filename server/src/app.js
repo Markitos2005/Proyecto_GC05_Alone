@@ -183,7 +183,7 @@ export function createApp({
     standardHeaders: 'draft-7', legacyHeaders: false,
     message: { message: 'Demasiados intentos. Inténtalo más tarde.' },
   });
-  for (const [path, action] of [['forgot-password', 'request'], ['reset-password', 'reset']]) {
+  for (const [path, action] of [['forgot-password', 'request'], ['reset-password', 'reset'], ['validate-reset-token', 'validate']]) {
     app.post(`/api/auth/${path}`, recoveryRateLimit, requireJson,
       express.json({ limit: '16kb', strict: true }), recoveryController(recovery, action));
   }

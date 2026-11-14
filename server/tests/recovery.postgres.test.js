@@ -54,16 +54,23 @@ test('SCRUM-43: recuperación HTTP, SMTP local y sesiones PostgreSQL reales', as
     };
     const reset = (token, newPassword = 'Nueva1234') => request(app).post('/api/auth/reset-password')
       .send({ token, password: newPassword, confirmPassword: newPassword });
+    const validate = (token) => request(app).post('/api/auth/validate-reset-token').send({ token });
     const first = await ask();
     assert.ok(first, 'El correo SMTP debe contener el enlace');
+    assert.equal((await validate(first)).status, 200);
+    assert.equal((await validate(first)).status, 200); // La comprobación no lo consume.
     assert.match(mailbox.messages[0], /localhost:5173\/#restablecer-contrasena/);
     assert.equal(mailbox.messages[0].includes(password), false);
     const current = await ask();
+    assert.equal((await validate(first)).status, 400);
+    assert.equal((await validate(current)).status, 200);
+    assert.equal((await validate('0'.repeat(64))).status, 400);
     assert.equal((await reset(first)).status, 400);
     assert.equal((await reset('0'.repeat(64))).status, 400);
     // Una contraseña débil no consume el enlace correcto.
     assert.equal((await reset(current, 'debil')).status, 400);
     assert.equal((await reset(current)).status, 200);
+    assert.equal((await validate(current)).status, 400);
     assert.equal((await reset(current)).status, 400);
     const { rows: [user] } = await pool.query('SELECT password_hash FROM usuarios WHERE id = $1', [id]);
     assert.match(user.password_hash, /^\$argon2id\$/);
@@ -74,6 +81,7 @@ test('SCRUM-43: recuperación HTTP, SMTP local y sesiones PostgreSQL reales', as
     assert.equal((await request(app).post('/api/auth/login').send({ email, password: 'Nueva1234' })).status, 200);
     const expired = await ask();
     await pool.query('UPDATE recuperacion_tokens SET expires_at = clock_timestamp()');
+    assert.equal((await validate(expired)).status, 400);
     assert.equal((await reset(expired)).status, 400);
     await ask(); // Cuarta solicitud: misma respuesta, ningún nuevo correo.
     assert.equal(mailbox.messages.length, 3);

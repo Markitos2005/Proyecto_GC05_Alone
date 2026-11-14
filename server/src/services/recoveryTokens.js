@@ -14,6 +14,11 @@ export function recoveryDigest(value) {
  */
 export function createRecoveryTokens(repository) {
   return {
+    async isValid(token) {
+      if (typeof token !== 'string' || !/^[a-f0-9]{64}$/.test(token)) return false;
+      return repository.isValid(recoveryDigest(token));
+    },
+
     async issue(rawEmail) {
       const email = typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
       if (email.length > 254 || !validator.isEmail(email, { allow_utf8_local_part: false })) {
