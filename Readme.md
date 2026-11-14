@@ -18,6 +18,18 @@ Si `.env` ya existe, conservarlo y revisar sus valores. Usar únicamente datos f
 
 Pruebas: `npm.cmd test` (API y React), `npm.cmd run test:db` (PostgreSQL real independiente), `npm.cmd run test:monolith` (arranque compilado, archivos React y registro HTTP).
 
+Publicar hallazgos (US-008: SCRUM-49, API; SCRUM-105, almacenamiento; SCRUM-103, formulario):
+
+- Tras actualizar, ejecutar `npm.cmd run db:migrate` (migración `007-hallazgos.sql`). Crea `hallazgos`, `hallazgo_rasgos_privados` y `hallazgo_imagenes`, y el mínimo de `facultades`, `categorias` y `asignaciones_conserje` que necesita la publicación. No inserta datos de ejemplo: su administración llegará con US-023 y US-025.
+- Solo publica una cuenta con rol `CONSERJE`, activa y asignada a una facultad activa. El servidor vuelve a comprobar rol, asignación y categoría dentro de la transacción.
+- Hallazgo, rasgos privados y fotos se guardan en una única transacción de PostgreSQL: si algo falla, no queda nada guardado. Las fotos se guardan en la base de datos (BYTEA) ya verificadas y sin metadatos; nunca se usa el nombre del archivo del cliente.
+- Los rasgos privados van en su propia tabla y no se devuelven en ninguna respuesta pública.
+- `GET /api/hallazgos/opciones`: sesión de Conserje; devuelve `{ facultad: { id, nombre }, categorias: [{ id, nombre }] }` de su asignación y categorías activas.
+- `POST /api/hallazgos`: sesión de Conserje y origen permitido; multipart con un campo `datos` (JSON) y entre 1 y 5 archivos `imagenes`, JPG/PNG de hasta 5 MiB cada uno. JSON: `{ "categoriaId": "UUID-de-categoria", "descripcion": "Objeto ficticio", "fechaHallazgo": "2026-01-01", "latitud": 0, "longitud": 0, "puntoEntrega": "Conserjería ficticia", "rasgosPrivados": "No publicar" }`. Los dos últimos textos son opcionales. Autor, facultad y estado los fija el servidor.
+- Límites técnicos del contrato: textos de hasta 2000 caracteres, fecha existente no futura (UTC), coordenadas numéricas y hasta 16 megapíxeles por foto.
+- Respuesta 201: `{ message: "Hallazgo publicado correctamente.", hallazgo: { id, estado: "Activo" } }`. Errores 400 de campos incluyen `errors`; también puede responder 401, 403, 413, 415, 429 y 500.
+- Pruebas: `server/tests/hallazgos.test.js` (API), `server/tests/hallazgos.postgres.test.js` (permisos con sesiones reales) y `server/tests/hallazgos-storage.postgres.test.js` (guardado atómico, rasgos separados y fotos sin metadatos).
+
 Recuperación de contraseña (SCRUM-43, API; SCRUM-94, pantallas React):
 
 - Arrancar el buzón local con `docker compose up -d mail` y abrir `http://localhost:8025`. Solo captura correos de pruebas; no los entrega por Internet.

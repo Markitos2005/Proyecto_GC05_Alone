@@ -24,12 +24,16 @@ import { createPasswordService, PasswordError } from './services/password.js';
 import { passwordController } from './controllers/password.js';
 import { RecoveryError } from './services/recovery.js';
 import { recoveryController } from './controllers/recovery.js';
+import { createHallazgoService, HallazgoError } from './services/hallazgos.js';
+import { createHallazgoRepository } from './repositories/hallazgos.js';
+import { hallazgoController, requireConserje, receiveHallazgo } from './controllers/hallazgos.js';
 
 /** App independiente del puerto y de la conexión a PostgreSQL. */
 export function createApp({
   users,
   sessionMiddleware,
   recovery,
+  hallazgoStorage = createHallazgoRepository(),
   recoveryLimit = 30,
   registrationLimit = 20,
   loginLimit = 10,
@@ -212,6 +216,14 @@ export function createApp({
       express.json({ limit: '16kb', strict: true }), recoveryController(recovery, action));
   }
 
+  // SCRUM-49: autenticación y permisos antes de recibir buffers de fotos.
+  const hallazgos = hallazgoController(createHallazgoService(hallazgoStorage));
+  app.get('/api/hallazgos/opciones', authenticated, requireConserje, hallazgos.options);
+  app.post('/api/hallazgos', authenticated, requireConserje, requireSameOrigin,
+    rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false,
+      message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
+    receiveHallazgo, hallazgos.publish);
+
   app.use('/api', (_req, res) => {
     res.status(404).json({
       message: 'Recurso no encontrado.',
@@ -236,7 +248,8 @@ export function createApp({
       error instanceof LoginError ||
       error instanceof ProfileError ||
       error instanceof PasswordError ||
-      error instanceof RecoveryError
+      error instanceof RecoveryError ||
+      error instanceof HallazgoError
     ) {
       return res.status(error.status).json({
         message: error.message,

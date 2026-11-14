@@ -28,9 +28,12 @@ test('SCRUM-96: persistencia, límites y consumo atómico en PostgreSQL real', a
     });
 
     await t.test('persiste solo hash y caduca en 30 minutos; se consume una sola vez', async () => {
-      const before = Date.now();
+      // La caducidad usa el reloj de PostgreSQL, que puede diferir del host Windows/Docker.
+      const { rows: [{ now: before }] } = await pool.query('SELECT clock_timestamp() AS now');
       const issued = await service.issue(email);
-      assert.ok(issued.expiresAt.getTime() >= before + 30 * 60 * 1000);
+      const { rows: [{ now: after }] } = await pool.query('SELECT clock_timestamp() AS now');
+      assert.ok(issued.expiresAt.getTime() >= before.getTime() + 30 * 60 * 1000);
+      assert.ok(issued.expiresAt.getTime() <= after.getTime() + 30 * 60 * 1000);
       const { rows: [saved] } = await pool.query('SELECT * FROM recuperacion_tokens');
       assert.notEqual(saved.token_hash, issued.token);
       assert.equal(JSON.stringify(saved).includes(issued.token), false);
