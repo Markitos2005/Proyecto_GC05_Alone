@@ -27,6 +27,9 @@ import { recoveryController } from './controllers/recovery.js';
 import { createHallazgoService, HallazgoError } from './services/hallazgos.js';
 import { createHallazgoRepository } from './repositories/hallazgos.js';
 import { hallazgoController, receiveHallazgo } from './controllers/hallazgos.js';
+import { createAvisoRepository } from './repositories/avisos.js';
+import { createAvisoService, AvisoError } from './services/avisos.js';
+import { avisoController } from './controllers/avisos.js';
 
 /** App independiente del puerto y de la conexión a PostgreSQL. */
 export function createApp({
@@ -34,6 +37,8 @@ export function createApp({
   sessionMiddleware,
   recovery,
   hallazgoStorage = createHallazgoRepository(),
+  avisoStorage = createAvisoRepository(),
+  avisoLimit = 30,
   recoveryLimit = 30,
   registrationLimit = 20,
   loginLimit = 10,
@@ -270,6 +275,14 @@ export function createApp({
     message: { message: 'Demasiadas búsquedas. Inténtalo dentro de un momento.' } });
   app.get('/api/hallazgos', authenticated, searchRateLimit, hallazgos.search);
 
+  // SCRUM-109 / SCRUM-52: avisos de pérdida, independientes de los hallazgos.
+  const avisos = avisoController(createAvisoService(avisoStorage));
+  app.get('/api/avisos/opciones', authenticated, avisos.options);
+  app.post('/api/avisos', authenticated, requireSameOrigin,
+    rateLimit({ windowMs: 15 * 60 * 1000, limit: avisoLimit, standardHeaders: 'draft-7', legacyHeaders: false,
+      message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
+    requireJson, express.json({ limit: '32kb', strict: true }), avisos.publish);
+
   app.use('/api', (_req, res) => {
     res.status(404).json({
       message: 'Recurso no encontrado.',
@@ -295,7 +308,8 @@ export function createApp({
       error instanceof ProfileError ||
       error instanceof PasswordError ||
       error instanceof RecoveryError ||
-      error instanceof HallazgoError
+      error instanceof HallazgoError ||
+      error instanceof AvisoError
     ) {
       return res.status(error.status).json({
         message: error.message,

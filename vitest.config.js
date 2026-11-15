@@ -17,6 +17,7 @@ export default defineConfig({
       'server/tests/hallazgos-busqueda.test.js',
       'server/tests/gestion-hallazgos.test.js',
       'server/tests/mis-hallazgos.test.js',
+      'server/tests/avisos.test.js',
       'client/src/**/*.test.jsx',
     ],
     environment: 'node',
