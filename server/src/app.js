@@ -221,6 +221,45 @@ export function createApp({
   // Autenticación y origen se comprueban antes de recibir los buffers de las fotos.
   const hallazgos = hallazgoController(createHallazgoService(hallazgoStorage));
   app.get('/api/hallazgos/opciones', authenticated, hallazgos.options);
+  // SCRUM-107 / US-009: foto pública por posición (1-5), solo de hallazgos Activos. Comparte forma de URL
+  // con la foto privada de US-010 (por UUID): si el último segmento es un UUID, se cede a esa ruta.
+  app.get('/api/hallazgos/:id/imagenes/:posicion',
+    (req, _res, next) => next(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.posicion) ? 'route' : undefined),
+    authenticated, hallazgos.image);
+  // SCRUM-113 / US-010: listado de los hallazgos propios. Antes de /:id para que «mios» no se tome como id.
+  app.get('/api/hallazgos/mios', authenticated, hallazgos.listOwn);
+  // SCRUM-114 / US-010: consulta del detalle de un hallazgo propio.
+  app.get('/api/hallazgos/:id', authenticated, hallazgos.getOwn);
+  // SCRUM-114 / US-010: acceso privado a imágenes de hallazgos propios.
+  app.get(
+    '/api/hallazgos/:id/imagenes/:imagenId',
+    authenticated,
+    hallazgos.getOwnImage,
+  );
+  // SCRUM-114 / US-010: historial privado de cambios de estado.
+  app.get(
+    '/api/hallazgos/:id/historial',
+    authenticated,
+    hallazgos.getOwnHistory,
+  );
+  // SCRUM-114 / US-010: edición de un hallazgo propio activo.
+  app.patch(
+    '/api/hallazgos/:id',
+    authenticated,
+    requireSameOrigin,
+    requireJson,
+    express.json({ limit: '16kb', strict: true }),
+    hallazgos.updateOwn,
+  );
+  // SCRUM-114 / US-010: transición de estado de un hallazgo propio.
+  app.patch(
+    '/api/hallazgos/:id/estado',
+    authenticated,
+    requireSameOrigin,
+    requireJson,
+    express.json({ limit: '16kb', strict: true }),
+    hallazgos.changeOwnState,
+  );
   app.post('/api/hallazgos', authenticated, requireSameOrigin,
     rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false,
       message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
@@ -230,7 +269,6 @@ export function createApp({
   const searchRateLimit = rateLimit({ windowMs: 60 * 1000, limit: searchLimit, standardHeaders: 'draft-7', legacyHeaders: false,
     message: { message: 'Demasiadas búsquedas. Inténtalo dentro de un momento.' } });
   app.get('/api/hallazgos', authenticated, searchRateLimit, hallazgos.search);
-  app.get('/api/hallazgos/:id/imagenes/:posicion', authenticated, hallazgos.image);
 
   app.use('/api', (_req, res) => {
     res.status(404).json({

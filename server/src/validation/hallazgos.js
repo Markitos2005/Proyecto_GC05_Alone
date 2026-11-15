@@ -59,6 +59,81 @@ export async function validateHallazgoImages(files) {
   return { images };
 }
 
+/** SCRUM-114 / US-010: valida una edición parcial del hallazgo. */
+export function validateHallazgoUpdate(data, today = new Date().toISOString().slice(0, 10)) {
+  const errors = {};
+
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return { errors: { datos: 'Envía un objeto JSON válido.' } };
+  }
+
+  const fields = Object.keys(data);
+
+  if (!fields.length || fields.some(field => !allowedFields.includes(field))) {
+    return { errors: { datos: 'Incluye únicamente campos editables del hallazgo.' } };
+  }
+
+  // Reutilizamos las mismas reglas de publicación para evitar
+  // diferencias entre crear y editar un hallazgo.
+  const complete = {
+    facultadId: '00000000-0000-4000-8000-000000000001',
+    categoriaId: '00000000-0000-4000-8000-000000000002',
+    descripcion: 'Valor temporal',
+    fechaHallazgo: today,
+    latitud: 0,
+    longitud: 0,
+    puntoEntrega: '',
+    rasgosPrivados: '',
+    ...data,
+  };
+
+  const result = validateHallazgo(complete, today);
+
+  for (const field of fields) {
+    if (result.errors[field]) errors[field] = result.errors[field];
+  }
+
+  const value = Object.fromEntries(
+    fields.map(field => [field, result.value?.[field]]),
+  );
+
+  return { errors, value };
+}
+
+/** SCRUM-114 / US-010: valida una transición de estado. */
+export function validateHallazgoStateChange(data) {
+  const errors = {};
+
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return { errors: { datos: 'Envía un objeto JSON válido.' } };
+  }
+
+  const fields = Object.keys(data);
+
+  if (
+    fields.some(field => !['estado', 'motivo'].includes(field)) ||
+    !['Devuelto', 'Retirado'].includes(data.estado)
+  ) {
+    errors.datos = 'Solo se permite cambiar el estado a Devuelto o Retirado.';
+  }
+
+  if (
+    data.motivo !== undefined &&
+    (typeof data.motivo !== 'string' ||
+      [...data.motivo].length > HALLAZGO_TEXT_MAX)
+  ) {
+    errors.motivo = 'El motivo debe ser un texto de hasta 2000 caracteres.';
+  }
+
+  return {
+    errors,
+    value: {
+      estado: data.estado,
+      motivo: typeof data.motivo === 'string' ? data.motivo.trim() : null,
+    },
+  };
+}
+
 // SCRUM-107 / US-009: búsqueda paginada de hallazgos Activos.
 export const BUSQUEDA_TAMANO_DEFECTO = 12;
 export const BUSQUEDA_TAMANO_MAX = 50;

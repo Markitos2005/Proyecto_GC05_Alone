@@ -135,6 +135,11 @@ export function HomePage({
                     Publicar un hallazgo
                   </a>
                 </p>
+                <p>
+                  <a href="#mis-hallazgos">
+                    Mis hallazgos
+                  </a>
+                </p>
               </>
             ) : (
               <p className="help">{status}</p>

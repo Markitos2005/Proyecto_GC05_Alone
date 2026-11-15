@@ -41,6 +41,20 @@ Buscar hallazgos (US-009: SCRUM-107, API; SCRUM-51, pantalla):
 - `GET /api/hallazgos/{id}/imagenes/{1-5}`: con sesión; devuelve la foto (JPG/PNG) si el hallazgo sigue Activo, si no 404. Las URL de `imagenes` sirven directamente para `<img src>`.
 - Pruebas: `server/tests/hallazgos-busqueda.test.js` (API y validación) y `server/tests/hallazgos-busqueda.postgres.test.js` (paginación con cero, uno y varios bloques, corte, filtros y estados en PostgreSQL real).
 
+Gestionar hallazgos propios (US-010: SCRUM-114, API; SCRUM-113, pantalla):
+
+- Tras actualizar, ejecutar `npm.cmd run db:migrate` (migración `008-historial-hallazgos.sql`).
+- Pantalla: con sesión iniciada, «Mis hallazgos» en la portada (`#mis-hallazgos`). Lista los hallazgos propios en cualquier estado. El detalle muestra fotos, rasgos privados e historial. Mientras el hallazgo está Activo se puede editar, marcar como devuelto o retirar, con motivo opcional y confirmación. Un hallazgo Devuelto o Retirado no se puede volver a activar.
+- `GET /api/hallazgos/mios`: con sesión; `{ hallazgos: [{ id, descripcion, fechaHallazgo, estado, categoria, facultad, publicadoEn, imagen }] }`, del más reciente al más antiguo. `imagen` es la URL de la primera foto o `null`.
+- Solo para el autor (un hallazgo ajeno responde 404):
+  - `GET /api/hallazgos/{id}`: detalle con rasgos privados e `imagenes: [{ id, posicion, mime }]`.
+  - `GET /api/hallazgos/{id}/imagenes/{imagenId}`: foto por su UUID, en cualquier estado.
+  - `GET /api/hallazgos/{id}/historial`: cambios de estado con fecha, usuario y motivo.
+  - `PATCH /api/hallazgos/{id}`: JSON solo con los campos modificados. Responde 409 si el hallazgo ya no está Activo.
+  - `PATCH /api/hallazgos/{id}/estado`: `{ "estado": "Devuelto" | "Retirado", "motivo": "opcional" }`.
+- Las fotos públicas de la búsqueda usan la misma forma de URL con una posición del 1 al 5 (`/imagenes/1`). Con un UUID se sirve la foto privada del autor.
+- Pruebas: `server/tests/gestion-hallazgos.test.js` y `server/tests/mis-hallazgos.test.js` (API), `client/src/MyFindingsPage.test.jsx` (pantalla), `server/tests/hallazgos-storage.postgres.test.js` y `server/tests/mis-hallazgos.postgres.test.js` (PostgreSQL real).
+
 Recuperación de contraseña (SCRUM-43, API; SCRUM-94, pantallas React):
 
 - Arrancar el buzón local con `docker compose up -d mail` y abrir `http://localhost:8025`. Solo captura correos de pruebas; no los entrega por Internet.

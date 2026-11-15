@@ -19,6 +19,7 @@ try {
     '005-cambios-contrasena.sql',
     '006-bloqueo-contrasena.sql',
     '007-hallazgos.sql',
+    '008-historial-hallazgos.sql',
   ];
 
   for (const filename of migrations) {

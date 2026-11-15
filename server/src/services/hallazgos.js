@@ -1,4 +1,12 @@
-import { validateBusqueda, validateHallazgo, validateHallazgoImages, validateImagenRef } from '../validation/hallazgos.js';
+import {
+  validateBusqueda,
+  validateHallazgo,
+  validateHallazgoImages,
+  validateHallazgoUpdate,
+  validateHallazgoStateChange,
+  validateImagenRef,
+} from '../validation/hallazgos.js';
+import validator from 'validator';
 
 export class HallazgoError extends Error {
   constructor(status, message, errors) { super(message); this.status = status; this.errors = errors; }
@@ -27,6 +35,7 @@ function publicHallazgo(row) {
   };
 }
 
+
 /** SCRUM-49 / SCRUM-103. Cualquier usuario autenticado y activo publica hallazgos.
  * El almacenamiento (SCRUM-105) está en repositories/hallazgos.js. */
 export function createHallazgoService(storage) {
@@ -36,6 +45,117 @@ export function createHallazgoService(storage) {
     return result;
   }
   return {
+    /** SCRUM-113 / US-010. Solo hallazgos propios; la miniatura usa la ruta privada de fotos propias. */
+    async listOwn(userId) {
+      const rows = await storage.listOwnHallazgos(userId);
+      return {
+        hallazgos: rows.map(row => ({
+          id: row.id, descripcion: row.descripcion, fechaHallazgo: row.fechaHallazgo, estado: row.estado,
+          categoria: row.categoria, facultad: row.facultad, publicadoEn: row.publicadoEn,
+          imagen: row.imagenId ? `/api/hallazgos/${row.id}/imagenes/${row.imagenId}` : null,
+        })),
+      };
+    },
+    async getOwn(userId, hallazgoId) {
+      if (typeof hallazgoId !== 'string' || !validator.isUUID(hallazgoId)) {
+        throw new HallazgoError(400, 'El identificador del hallazgo no es válido.');
+      }
+
+      const hallazgo = await storage.getOwnHallazgo(userId, hallazgoId);
+
+      if (!hallazgo) {
+        // El mismo mensaje para un hallazgo inexistente y uno ajeno.
+        // Así evitamos revelar información sobre otros usuarios.
+        throw new HallazgoError(404, 'Hallazgo no encontrado.');
+      }
+
+      return { hallazgo };
+    },
+    async getOwnImage(userId, hallazgoId, imagenId) {
+      if (
+        typeof hallazgoId !== 'string' ||
+        !validator.isUUID(hallazgoId) ||
+        typeof imagenId !== 'string' ||
+        !validator.isUUID(imagenId)
+      ) {
+        throw new HallazgoError(400, 'El identificador no es válido.');
+      }
+
+      const imagen = await storage.getOwnHallazgoImage(
+        userId,
+        hallazgoId,
+        imagenId,
+      );
+
+      if (!imagen) {
+        // No revelar si la imagen existe pero pertenece a otro usuario.
+        throw new HallazgoError(404, 'Imagen no encontrada.');
+      }
+
+      return imagen;
+    },
+    async getOwnHistory(userId, hallazgoId) {
+      if (typeof hallazgoId !== 'string' || !validator.isUUID(hallazgoId)) {
+        throw new HallazgoError(400, 'El identificador del hallazgo no es válido.');
+      }
+
+      const historial = await storage.getOwnHallazgoHistory(userId, hallazgoId);
+
+      if (historial === null) {
+        throw new HallazgoError(404, 'Hallazgo no encontrado.');
+      }
+
+      return {
+        historial,
+      };
+    },
+    async updateOwn(userId, hallazgoId, data) {
+      if (typeof hallazgoId !== 'string' || !validator.isUUID(hallazgoId)) {
+        throw new HallazgoError(400, 'El identificador del hallazgo no es válido.');
+      }
+
+      const { errors, value } = validateHallazgoUpdate(data);
+
+      if (Object.keys(errors).length) {
+        throw new HallazgoError(400, 'Revisa los datos del hallazgo.', errors);
+      }
+
+      const updated = await storage.updateOwnHallazgo(userId, hallazgoId, value);
+
+      return {
+        message: 'Hallazgo actualizado correctamente.',
+        hallazgo: {
+          id: updated.id,
+          estado: updated.estado,
+        },
+      };
+    },
+    async changeOwnState(userId, hallazgoId, data) {
+      if (typeof hallazgoId !== 'string' || !validator.isUUID(hallazgoId)) {
+        throw new HallazgoError(400, 'El identificador del hallazgo no es válido.');
+      }
+
+      const { errors, value } = validateHallazgoStateChange(data);
+
+      if (Object.keys(errors).length) {
+        throw new HallazgoError(400, 'Revisa el cambio de estado.', errors);
+      }
+
+      const updated = await storage.changeOwnHallazgoState(
+        userId,
+        hallazgoId,
+        value.estado,
+        value.motivo,
+      );
+
+      return {
+        message: 'Estado del hallazgo actualizado correctamente.',
+        hallazgo: {
+          id: updated.id,
+          estado: updated.estado,
+        },
+      };
+    },
     async options(userId) {
       const current = await context(userId);
       return {
