@@ -10,7 +10,7 @@ const sections = [
   [
     'Avisos de pérdida',
     'Un espacio para avisar de lo que has perdido.',
-    'Publicación y consulta pendientes · US-013 y US-014',
+    'Publicación y consulta de avisos · US-013 y US-014',
   ],
   [
     'Tu perfil',
@@ -124,11 +124,36 @@ export function HomePage({
                 </a>
               </p>
             ) : title === 'Objetos encontrados' && user && !demo ? (
-              <p>
-                <a href="#publicar-hallazgo">
-                  Publicar un hallazgo
-                </a>
-              </p>
+              <>
+                <p>
+                  <a href="#buscar-hallazgos">
+                    Buscar hallazgos
+                  </a>
+                </p>
+                <p>
+                  <a href="#publicar-hallazgo">
+                    Publicar un hallazgo
+                  </a>
+                </p>
+                <p>
+                  <a href="#mis-hallazgos">
+                    Mis hallazgos
+                  </a>
+                </p>
+              </>
+            ) : title === 'Avisos de pérdida' && user && !demo ? (
+              <>
+                <p>
+                  <a href="#publicar-aviso">
+                    Publicar un aviso de pérdida
+                  </a>
+                </p>
+                <p>
+                  <a href="#feed-avisos">
+                    Consultar avisos de pérdida
+                  </a>
+                </p>
+              </>
             ) : (
               <p className="help">{status}</p>
             )}

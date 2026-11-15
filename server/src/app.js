@@ -27,6 +27,9 @@ import { recoveryController } from './controllers/recovery.js';
 import { createHallazgoService, HallazgoError } from './services/hallazgos.js';
 import { createHallazgoRepository } from './repositories/hallazgos.js';
 import { hallazgoController, receiveHallazgo } from './controllers/hallazgos.js';
+import { createAvisoRepository } from './repositories/avisos.js';
+import { createAvisoService, AvisoError } from './services/avisos.js';
+import { avisoController } from './controllers/avisos.js';
 
 /** App independiente del puerto y de la conexión a PostgreSQL. */
 export function createApp({
@@ -34,10 +37,13 @@ export function createApp({
   sessionMiddleware,
   recovery,
   hallazgoStorage = createHallazgoRepository(),
+  avisoStorage = createAvisoRepository(),
+  avisoLimit = 30,
   recoveryLimit = 30,
   registrationLimit = 20,
   loginLimit = 10,
   passwordLimit = 20,
+  searchLimit = 120,
   logError = () => console.error('Error interno de la aplicación.'),
 }) {
   const app = express();
@@ -220,11 +226,66 @@ export function createApp({
   // Autenticación y origen se comprueban antes de recibir los buffers de las fotos.
   const hallazgos = hallazgoController(createHallazgoService(hallazgoStorage));
   app.get('/api/hallazgos/opciones', authenticated, hallazgos.options);
+  // SCRUM-107 / US-009: foto pública por posición (1-5), solo de hallazgos Activos. Comparte forma de URL
+  // con la foto privada de US-010 (por UUID): si el último segmento es un UUID, se cede a esa ruta.
+  app.get('/api/hallazgos/:id/imagenes/:posicion',
+    (req, _res, next) => next(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.posicion) ? 'route' : undefined),
+    authenticated, hallazgos.image);
+  // SCRUM-113 / US-010: listado de los hallazgos propios. Antes de /:id para que «mios» no se tome como id.
+  app.get('/api/hallazgos/mios', authenticated, hallazgos.listOwn);
+  // SCRUM-114 / US-010: consulta del detalle de un hallazgo propio.
+  app.get('/api/hallazgos/:id', authenticated, hallazgos.getOwn);
+  // SCRUM-114 / US-010: acceso privado a imágenes de hallazgos propios.
+  app.get(
+    '/api/hallazgos/:id/imagenes/:imagenId',
+    authenticated,
+    hallazgos.getOwnImage,
+  );
+  // SCRUM-114 / US-010: historial privado de cambios de estado.
+  app.get(
+    '/api/hallazgos/:id/historial',
+    authenticated,
+    hallazgos.getOwnHistory,
+  );
+  // SCRUM-114 / US-010: edición de un hallazgo propio activo.
+  app.patch(
+    '/api/hallazgos/:id',
+    authenticated,
+    requireSameOrigin,
+    requireJson,
+    express.json({ limit: '16kb', strict: true }),
+    hallazgos.updateOwn,
+  );
+  // SCRUM-114 / US-010: transición de estado de un hallazgo propio.
+  app.patch(
+    '/api/hallazgos/:id/estado',
+    authenticated,
+    requireSameOrigin,
+    requireJson,
+    express.json({ limit: '16kb', strict: true }),
+    hallazgos.changeOwnState,
+  );
   app.post('/api/hallazgos', authenticated, requireSameOrigin,
     rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false,
       message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
     receiveHallazgo, hallazgos.publish);
 
+  // SCRUM-107 / US-009: búsqueda paginada de hallazgos Activos y sus fotos públicas, con sesión.
+  const searchRateLimit = rateLimit({ windowMs: 60 * 1000, limit: searchLimit, standardHeaders: 'draft-7', legacyHeaders: false,
+    message: { message: 'Demasiadas búsquedas. Inténtalo dentro de un momento.' } });
+  app.get('/api/hallazgos', authenticated, searchRateLimit, hallazgos.search);
+
+  // SCRUM-109 / SCRUM-52: avisos de pérdida, independientes de los hallazgos.
+  const avisos = avisoController(createAvisoService(avisoStorage));
+  app.get('/api/avisos/opciones', authenticated, avisos.options);
+  app.post('/api/avisos', authenticated, requireSameOrigin,
+    rateLimit({ windowMs: 15 * 60 * 1000, limit: avisoLimit, standardHeaders: 'draft-7', legacyHeaders: false,
+      message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
+    requireJson, express.json({ limit: '32kb', strict: true }), avisos.publish);
+
+  // SCRUM-57 / US-014: feed paginado de avisos de pérdida activos.
+  app.get('/api/avisos', authenticated, avisos.listActive);
+  
   app.use('/api', (_req, res) => {
     res.status(404).json({
       message: 'Recurso no encontrado.',
@@ -250,7 +311,8 @@ export function createApp({
       error instanceof ProfileError ||
       error instanceof PasswordError ||
       error instanceof RecoveryError ||
-      error instanceof HallazgoError
+      error instanceof HallazgoError ||
+      error instanceof AvisoError
     ) {
       return res.status(error.status).json({
         message: error.message,

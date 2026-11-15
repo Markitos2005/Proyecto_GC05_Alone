@@ -31,6 +31,81 @@ Publicar hallazgos (US-008: SCRUM-49, API; SCRUM-105, almacenamiento; SCRUM-103,
 - Respuesta 201: `{ message: "Hallazgo publicado correctamente.", hallazgo: { id, estado: "Activo" } }`. Errores 400 de campos incluyen `errors`; también puede responder 401, 403, 413, 415, 429 y 500.
 - Pruebas: `server/tests/hallazgos.test.js` (API), `client/src/PublishFindingPage.test.jsx` (formulario), `server/tests/hallazgos.postgres.test.js` (sesiones reales) y `server/tests/hallazgos-storage.postgres.test.js` (guardado atómico, rasgos separados y fotos sin metadatos).
 
+Buscar hallazgos (US-009: SCRUM-107, API; SCRUM-51, pantalla):
+
+- `GET /api/hallazgos`: con sesión. Solo hallazgos `Activo`, del más reciente al más antiguo. Parámetros opcionales: `q` (palabras de la descripción pública, hasta 100 caracteres; deben aparecer todas, sin distinguir mayúsculas), `categoriaId`, `facultadId`, `fechaDesde` y `fechaHasta` (`AAAA-MM-DD`, fecha del hallazgo, ambas incluidas), `pagina` (desde 1), `tamano` (1–50, por defecto 12) y `corte`. Un parámetro desconocido o repetido responde 400.
+- Respuesta 200: `{ hallazgos: [{ id, categoria: { id, nombre }, facultad: { id, nombre }, descripcion, fechaHallazgo, ubicacion: { latitud, longitud, puntoEntrega }, estado, publicadoEn, imagenes: ["/api/hallazgos/{id}/imagenes/1"] }], paginacion: { pagina, tamano, total, totalPaginas, anterior, siguiente, corte } }`. `anterior` y `siguiente` son números de página o `null`.
+- Paginación: enviar en las páginas siguientes el mismo `corte` que devolvió la primera. Así los hallazgos publicados mientras tanto no desplazan resultados (sin duplicados ni huecos). Una búsqueda nueva o un cambio de filtros se hace sin `corte`.
+- Sin resultados: 200 con `hallazgos: []` y `message` («Todavía no hay hallazgos activos.» o «No hay hallazgos activos que coincidan con la búsqueda.»). Página inexistente: 404 «La página solicitada no existe.» con `errors.pagina`. Filtros no válidos: 400 con `errors` por campo. También 401, 429 y 503.
+- Privacidad: nunca se devuelven rasgos privados, autor ni correo, y los rasgos no son buscables. Las coordenadas se redondean a 3 decimales (unos 100 m).
+- `GET /api/hallazgos/{id}/imagenes/{1-5}`: con sesión; devuelve la foto (JPG/PNG) si el hallazgo sigue Activo, si no 404. Las URL de `imagenes` sirven directamente para `<img src>`.
+- Pruebas: `server/tests/hallazgos-busqueda.test.js` (API y validación) y `server/tests/hallazgos-busqueda.postgres.test.js` (paginación con cero, uno y varios bloques, corte, filtros y estados en PostgreSQL real).
+
+Gestionar hallazgos propios (US-010: SCRUM-114, API; SCRUM-113, pantalla):
+
+- Tras actualizar, ejecutar `npm.cmd run db:migrate` (migración `008-historial-hallazgos.sql`).
+- Pantalla: con sesión iniciada, «Mis hallazgos» en la portada (`#mis-hallazgos`). Lista los hallazgos propios en cualquier estado. El detalle muestra fotos, rasgos privados e historial. Mientras el hallazgo está Activo se puede editar, marcar como devuelto o retirar, con motivo opcional y confirmación. Un hallazgo Devuelto o Retirado no se puede volver a activar.
+- `GET /api/hallazgos/mios`: con sesión; `{ hallazgos: [{ id, descripcion, fechaHallazgo, estado, categoria, facultad, publicadoEn, imagen }] }`, del más reciente al más antiguo. `imagen` es la URL de la primera foto o `null`.
+- Solo para el autor (un hallazgo ajeno responde 404):
+  - `GET /api/hallazgos/{id}`: detalle con rasgos privados e `imagenes: [{ id, posicion, mime }]`.
+  - `GET /api/hallazgos/{id}/imagenes/{imagenId}`: foto por su UUID, en cualquier estado.
+  - `GET /api/hallazgos/{id}/historial`: cambios de estado con fecha, usuario y motivo.
+  - `PATCH /api/hallazgos/{id}`: JSON solo con los campos modificados. Responde 409 si el hallazgo ya no está Activo.
+  - `PATCH /api/hallazgos/{id}/estado`: `{ "estado": "Devuelto" | "Retirado", "motivo": "opcional" }`.
+- Las fotos públicas de la búsqueda usan la misma forma de URL con una posición del 1 al 5 (`/imagenes/1`). Con un UUID se sirve la foto privada del autor.
+- Pruebas: `server/tests/gestion-hallazgos.test.js` y `server/tests/mis-hallazgos.test.js` (API), `client/src/MyFindingsPage.test.jsx` (pantalla), `server/tests/hallazgos-storage.postgres.test.js` y `server/tests/mis-hallazgos.postgres.test.js` (PostgreSQL real).
+
+Publicar avisos de pérdida (US-013: SCRUM-109, API; SCRUM-52, formulario de Luis):
+
+- Ejecutar `npm.cmd run db:migrate` después de actualizar: `009-avisos.sql` crea `centros`, `avisos` y `aviso_datos_privados`, sin borrar datos ni añadir ejemplos. Categorías y facultades reutilizan los catálogos de hallazgos. Si están vacíos en desarrollo, el comando existente `npm.cmd run db:seed-dev` carga datos ficticios; no se requiere un centro para publicar.
+- `GET /api/avisos/opciones`, con sesión: `{ categorias: [{ id, nombre }], facultades: [{ id, nombre }], centros: [{ id, nombre, facultadId }] }`. Solo opciones activas. Para un centro se exige que su facultad también esté activa.
+- `POST /api/avisos`, con sesión, origen permitido y `Content-Type: application/json`. Obligatorios: `categoriaId`, `descripcion`, `fechaPerdida` y **una facultad o un centro** (`facultadId` o `centroId`). Si se envían ambos, deben corresponderse. Al seleccionar solo un centro, el servidor obtiene su facultad. Opcionales: `centroId`, `rasgosPrivados`, `contactoEmail` y `contactoTelefono`; pueden omitirse, ser `null` o textos vacíos. Nunca enviar `autorId` ni `estado`: los fija el servidor.
+
+```json
+{
+  "categoriaId": "UUID-del-catalogo",
+  "facultadId": "UUID-del-catalogo",
+  "descripcion": "He perdido una mochila ficticia",
+  "fechaPerdida": "2026-01-15",
+  "rasgosPrivados": "Detalle que no debe salir en el feed",
+  "contactoEmail": "contacto@example.com",
+  "contactoTelefono": "600000000"
+}
+```
+
+- Límites técnicos de implementación (no horas ni requisitos nuevos del profesor): descripción y rasgos de hasta 2000 caracteres; fecha aproximada `AAAA-MM-DD`, existente y no futura según UTC; correo opcional válido de hasta 254 caracteres y teléfono opcional de 9 cifras con `+34` opcional, como el perfil. Sin fotos: esta historia publica avisos, no hallazgos.
+- Respuesta 201: `{ message: "Aviso de pérdida publicado correctamente.", aviso: { id, estado: "Activo" } }`. Guarda el autor de la sesión y todo el aviso en una transacción; no crea hallazgos ni solicitudes. Los rasgos y los contactos voluntarios quedan en `aviso_datos_privados`, separados de `avisos`, y no se devuelven en esta respuesta ni se copian desde el perfil.
+- Errores: 400 `{ message, errors: { nombreCampo: "Explicación" } }`, incluidos catálogos inexistentes/inactivos o centro de otra facultad; 401 sin sesión/cuenta desactivada; 403 origen no autorizado; 413 más de 32 KiB; 415 sin JSON; 429 más de 30 publicaciones por IP en 15 minutos; 503 sin almacenamiento configurado; 500 error interno sin detalles privados. No se guardan filas ante errores de validación o un fallo de la transacción.
+- **Conexión para Luis**: importar `getAvisoOptions` y `publishAviso` de `client/src/api/avisos.js`. Cargar catálogos al abrir el formulario, enviar sus UUID y mostrar `error.errors[campo]` como texto. Usan la cookie de sesión existente; no se añade JWT ni almacenamiento de credenciales. Tras 201 mostrar confirmación; ante un fallo de red no repetir automáticamente el POST porque podría haberse guardado. Deshabilitar el botón mientras se envía.
+- El formulario debe mostrar el aviso de US-013-AC-07: «Este aviso no inicia una solicitud de recuperación ni implica que el objeto esté bajo custodia de la Universidad». El campo de contacto es voluntario: no rellenarlo con el correo de la cuenta sin decisión del usuario.
+- Pantalla (SCRUM-52): con sesión iniciada, «Publicar un aviso de pérdida» en la portada (`#publicar-aviso`). Pide categoría, descripción pública, fecha aproximada y facultad o centro (solo se ofrecen los centros de la facultad elegida); rasgos privados, correo y teléfono de contacto son opcionales y empiezan vacíos. Valida en el navegador lo mismo que el servidor, muestra los errores por campo, desactiva el botón mientras envía y muestra el aviso de US-013-AC-07.
+- El feed pertenece a US-014. Al conectarlo, consultar solo los campos públicos de `avisos` y no incluir `aviso_datos_privados` ni el correo del autor.
+- Pruebas: `server/tests/avisos.test.js` (API, validación y permisos), `client/src/api/avisos.test.jsx` (contrato del módulo para React), `server/tests/avisos.postgres.test.js` (persistencia real, opciones activas, selección de centro, privacidad y rollback) y `client/src/PublishLostNoticePage.test.jsx` (formulario). La de PostgreSQL ya está incluida en `npm.cmd run test:db`.
+
+### Consultar el feed de avisos de pérdida (US-014: SCRUM-57)
+
+- `GET /api/avisos`: consulta paginada de avisos de pérdida activos. Requiere una sesión válida.
+- Parámetros opcionales:
+  - `pagina`: entero positivo, por defecto 1.
+  - `tamano`: entero entre 1 y 50, por defecto 12.
+- Los avisos se ordenan del más reciente al más antiguo.
+- La respuesta incluye `avisos` y `paginacion`.
+- Cada aviso contiene id, categoría, facultad, centro (si existe), descripción pública, fecha aproximada de pérdida y estado.
+- La paginación incluye `pagina`, `tamano`, `total`, `totalPaginas`, `anterior` y `siguiente`.
+- No se devuelven rasgos privados, datos del autor, correo electrónico ni teléfono de contacto.
+- El feed de avisos es independiente del listado de hallazgos.
+- Si no existen avisos activos, responde 200 con un listado vacío y un mensaje informativo.
+- Si los parámetros de paginación son incorrectos, responde 400.
+- Si la página solicitada no existe, responde 404.
+- Sin sesión válida, responde 401.
+- Sin almacenamiento disponible, responde 503.
+- Pantalla accesible desde la portada mediante «Consultar avisos de pérdida» (`#feed-avisos`).
+- Pruebas:
+  - `server/tests/avisos.test.js`
+  - `server/tests/avisos.postgres.test.js`
+  - `client/src/api/avisos.test.jsx`
+  - `client/src/FeedAvisosPage.test.jsx`
+
 Recuperación de contraseña (SCRUM-43, API; SCRUM-94, pantallas React):
 
 - Arrancar el buzón local con `docker compose up -d mail` y abrir `http://localhost:8025`. Solo captura correos de pruebas; no los entrega por Internet.
