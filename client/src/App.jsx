@@ -9,6 +9,7 @@ import { PublishFindingPage } from './PublishFindingPage.jsx';
 import { SearchFindingsPage } from './SearchFindingsPage.jsx';
 import { MyFindingsPage } from './MyFindingsPage.jsx';
 import { PublishLostNoticePage } from './PublishLostNoticePage.jsx';
+import { FeedAvisosPage } from './FeedAvisosPage.jsx';
 
 /** Navegación de registro, inicio de sesión, perfil y cierre de sesión. */
 export function App() {
@@ -112,6 +113,11 @@ export function App() {
   // US-013: publicar un aviso de pérdida.
   if (hash === '#publicar-aviso' && !demo) {
     return <PublishLostNoticePage />;
+  }
+
+    // SCRUM-57 / US-014: consultar el feed de avisos.
+  if (hash === '#feed-avisos' && !demo) {
+    return <FeedAvisosPage />;
   }
 
   // Portada pública o pantalla del usuario autenticado.

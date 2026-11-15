@@ -82,6 +82,30 @@ Publicar avisos de pérdida (US-013: SCRUM-109, API; SCRUM-52, formulario de Lui
 - El feed pertenece a US-014. Al conectarlo, consultar solo los campos públicos de `avisos` y no incluir `aviso_datos_privados` ni el correo del autor.
 - Pruebas: `server/tests/avisos.test.js` (API, validación y permisos), `client/src/api/avisos.test.jsx` (contrato del módulo para React), `server/tests/avisos.postgres.test.js` (persistencia real, opciones activas, selección de centro, privacidad y rollback) y `client/src/PublishLostNoticePage.test.jsx` (formulario). La de PostgreSQL ya está incluida en `npm.cmd run test:db`.
 
+### Consultar el feed de avisos de pérdida (US-014: SCRUM-57)
+
+- `GET /api/avisos`: consulta paginada de avisos de pérdida activos. Requiere una sesión válida.
+- Parámetros opcionales:
+  - `pagina`: entero positivo, por defecto 1.
+  - `tamano`: entero entre 1 y 50, por defecto 12.
+- Los avisos se ordenan del más reciente al más antiguo.
+- La respuesta incluye `avisos` y `paginacion`.
+- Cada aviso contiene id, categoría, facultad, centro (si existe), descripción pública, fecha aproximada de pérdida y estado.
+- La paginación incluye `pagina`, `tamano`, `total`, `totalPaginas`, `anterior` y `siguiente`.
+- No se devuelven rasgos privados, datos del autor, correo electrónico ni teléfono de contacto.
+- El feed de avisos es independiente del listado de hallazgos.
+- Si no existen avisos activos, responde 200 con un listado vacío y un mensaje informativo.
+- Si los parámetros de paginación son incorrectos, responde 400.
+- Si la página solicitada no existe, responde 404.
+- Sin sesión válida, responde 401.
+- Sin almacenamiento disponible, responde 503.
+- Pantalla accesible desde la portada mediante «Consultar avisos de pérdida» (`#feed-avisos`).
+- Pruebas:
+  - `server/tests/avisos.test.js`
+  - `server/tests/avisos.postgres.test.js`
+  - `client/src/api/avisos.test.jsx`
+  - `client/src/FeedAvisosPage.test.jsx`
+
 Recuperación de contraseña (SCRUM-43, API; SCRUM-94, pantallas React):
 
 - Arrancar el buzón local con `docker compose up -d mail` y abrir `http://localhost:8025`. Solo captura correos de pruebas; no los entrega por Internet.

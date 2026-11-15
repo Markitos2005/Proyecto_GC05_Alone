@@ -283,6 +283,9 @@ export function createApp({
       message: { message: 'Demasiadas publicaciones. Inténtalo más tarde.' } }),
     requireJson, express.json({ limit: '32kb', strict: true }), avisos.publish);
 
+  // SCRUM-57 / US-014: feed paginado de avisos de pérdida activos.
+  app.get('/api/avisos', authenticated, avisos.listActive);
+  
   app.use('/api', (_req, res) => {
     res.status(404).json({
       message: 'Recurso no encontrado.',
