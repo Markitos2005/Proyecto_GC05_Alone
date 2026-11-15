@@ -5,7 +5,13 @@ import { AvisoError } from '../services/avisos.js';
 export function createAvisoRepository(pool) {
   if (!pool) {
     const unavailable = async () => { throw new AvisoError(503, 'La publicación de avisos no está disponible en este momento.'); };
-    return { options: unavailable, publish: unavailable };
+    return {
+      options: unavailable,
+      publish: unavailable,
+      listActive: async () => {
+        throw new AvisoError(503, 'La consulta de avisos no está disponible en este momento.');
+      },
+    };
   }
   return {
     async options() {
@@ -16,6 +22,54 @@ export function createAvisoRepository(pool) {
          JOIN facultades f ON f.id = c.facultad_id WHERE c.activo AND f.activo ORDER BY c.nombre, c.id`);
       return { categorias, facultades, centros };
     },
+
+    // SCRUM-57 / US-014: consulta paginada de avisos activos.
+    async listActive(pagina = 1, tamano = 12) {
+      const offset = (pagina - 1) * tamano;
+
+      const { rows } = await pool.query(
+        `SELECT COUNT(*)::int AS total
+        FROM avisos
+        WHERE estado = $1`,
+        ['Activo']
+      );
+
+      const total = rows[0].total;
+
+      const { rows: avisos } = await pool.query(
+        `SELECT
+          a.id,
+          a.descripcion,
+          a.fecha_perdida::text AS "fechaPerdida",
+          a.estado,
+          json_build_object(
+            'id', cat.id,
+            'nombre', cat.nombre
+          ) AS categoria,
+          json_build_object(
+            'id', f.id,
+            'nombre', f.nombre
+          ) AS facultad,
+          CASE
+            WHEN c.id IS NULL THEN NULL
+            ELSE json_build_object(
+              'id', c.id,
+              'nombre', c.nombre
+            )
+          END AS centro
+        FROM avisos a
+        JOIN categorias cat ON cat.id = a.categoria_id
+        JOIN facultades f ON f.id = a.facultad_id
+        LEFT JOIN centros c ON c.id = a.centro_id
+        WHERE a.estado = $1
+        ORDER BY a.created_at DESC, a.id DESC
+        LIMIT $2 OFFSET $3`,
+        ['Activo', tamano, offset]
+      );
+
+      return { avisos, total };
+    },
+
     async publish(userId, data) {
       const client = await pool.connect();
       try {

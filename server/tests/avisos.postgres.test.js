@@ -112,6 +112,133 @@ test('SCRUM-109: publicación real de avisos, privacidad y transacciones Postgre
       assert.equal(JSON.stringify(result.body).includes('fallo interno'), false);
       await pool.query('DROP TRIGGER fallo_privado_test ON aviso_datos_privados; DROP FUNCTION rechazar_privados_test()');
     });
+
+        // SCRUM-57 / US-014: pruebas del feed con PostgreSQL real.
+
+    await t.test('el feed devuelve únicamente avisos activos', async () => {
+      const result = await publish({
+        ...valid(),
+        descripcion: 'Aviso cerrado de prueba',
+      });
+
+      assert.equal(result.status, 201);
+
+      const closedId = result.body.aviso.id;
+
+      await pool.query(
+        'UPDATE avisos SET estado = $1 WHERE id = $2',
+        ['Cerrado', closedId]
+      );
+
+      const feed = await agent.get('/api/avisos');
+
+      assert.equal(feed.status, 200);
+      assert.ok(feed.body.avisos.length > 0);
+      assert.ok(feed.body.avisos.every(aviso => aviso.estado === 'Activo'));
+      assert.ok(feed.body.avisos.every(aviso => aviso.id !== closedId));
+    });
+
+    await t.test('el feed solo devuelve información pública', async () => {
+      const result = await publish({
+        ...valid(),
+        centroId: centre,
+        descripcion: 'Mochila del feed',
+        rasgosPrivados: 'Rasgo privado del feed',
+        contactoEmail: 'privado@example.com',
+        contactoTelefono: '+34600000000',
+      });
+
+      assert.equal(result.status, 201);
+
+      const feed = await agent.get('/api/avisos');
+
+      assert.equal(feed.status, 200);
+
+      const aviso = feed.body.avisos.find(
+        item => item.id === result.body.aviso.id
+      );
+
+      assert.deepEqual(aviso, {
+        id: result.body.aviso.id,
+        categoria: {
+          id: category,
+          nombre: 'Categoría ficticia',
+        },
+        facultad: {
+          id: faculty,
+          nombre: 'Facultad ficticia',
+        },
+        centro: {
+          id: centre,
+          nombre: 'Centro ficticio',
+        },
+        descripcion: 'Mochila del feed',
+        fechaPerdida: '2026-01-15',
+        estado: 'Activo',
+      });
+
+      const response = JSON.stringify(feed.body);
+
+      assert.equal(response.includes('Rasgo privado del feed'), false);
+      assert.equal(response.includes('privado@example.com'), false);
+      assert.equal(response.includes('persona@example.com'), false);
+      assert.equal(response.includes('+34600000000'), false);
+      assert.equal(response.includes(userId), false);
+    });
+
+    await t.test('pagina los avisos sin repetir resultados', async () => {
+      const first = await agent.get('/api/avisos?pagina=1&tamano=2');
+      const second = await agent.get('/api/avisos?pagina=2&tamano=2');
+
+      assert.equal(first.status, 200);
+      assert.equal(second.status, 200);
+
+      assert.equal(first.body.avisos.length, 2);
+      assert.equal(second.body.avisos.length, 2);
+
+      assert.equal(first.body.paginacion.anterior, false);
+      assert.equal(first.body.paginacion.siguiente, true);
+      assert.equal(second.body.paginacion.anterior, true);
+
+      const firstIds = first.body.avisos.map(aviso => aviso.id);
+      const secondIds = second.body.avisos.map(aviso => aviso.id);
+
+      assert.ok(secondIds.every(id => !firstIds.includes(id)));
+    });
+
+    await t.test('devuelve un error cuando la página no existe', async () => {
+      const result = await agent.get('/api/avisos?pagina=999');
+
+      assert.equal(result.status, 404);
+      assert.equal(result.body.message, 'La página solicitada no existe.');
+    });
+
+    await t.test('el feed de avisos es independiente de los hallazgos', async () => {
+      const result = await agent.get('/api/avisos');
+
+      assert.equal(result.status, 200);
+      assert.ok(result.body.avisos.length > 0);
+      assert.equal(await count('hallazgos'), 0);
+      assert.equal(Object.hasOwn(result.body, 'hallazgos'), false);
+    });
+
+    await t.test('informa cuando no quedan avisos activos', async () => {
+      await pool.query(
+        'UPDATE avisos SET estado = $1',
+        ['Cerrado']
+      );
+
+      const result = await agent.get('/api/avisos');
+
+      assert.equal(result.status, 200);
+      assert.deepEqual(result.body.avisos, []);
+      assert.equal(result.body.paginacion.total, 0);
+      assert.equal(
+        result.body.message,
+        'Todavía no hay avisos de pérdida activos.'
+      );
+    });
+
     await t.test('el repositorio revalida la cuenta desactivada dentro de la transacción', async () => {
       await pool.query('UPDATE usuarios SET activo = FALSE WHERE id = $1', [userId]);
       const before = await count('avisos');

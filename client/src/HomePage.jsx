@@ -10,7 +10,7 @@ const sections = [
   [
     'Avisos de pérdida',
     'Un espacio para avisar de lo que has perdido.',
-    'Publicación y consulta pendientes · US-013 y US-014',
+    'Publicación y consulta de avisos · US-013 y US-014',
   ],
   [
     'Tu perfil',
@@ -148,7 +148,11 @@ export function HomePage({
                     Publicar un aviso de pérdida
                   </a>
                 </p>
-                <p className="help">Consulta de avisos pendiente · US-014</p>
+                <p>
+                  <a href="#feed-avisos">
+                    Consultar avisos de pérdida
+                  </a>
+                </p>
               </>
             ) : (
               <p className="help">{status}</p>

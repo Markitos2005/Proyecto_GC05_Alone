@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from 'vitest';
-import { getAvisoOptions, publishAviso } from './avisos.js';
+import { getAvisoOptions, publishAviso, getAvisos } from './avisos.js';
 
 afterEach(() => vi.unstubAllGlobals());
 it('Luis puede consultar los catálogos con la sesión existente', async () => {
@@ -39,4 +39,98 @@ it('un fallo de red no repite un POST automáticamente', async () => {
 it('detecta respuestas que no son JSON', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => { throw new Error(); } }));
   await expect(getAvisoOptions()).rejects.toThrow('La respuesta del servidor no es válida.');
+});
+
+// SCRUM-57 / US-014: API del feed de avisos.
+
+it('consulta el feed con la paginación por defecto y la sesión existente', async () => {
+  const data = {
+    avisos: [],
+    paginacion: { pagina: 1, tamano: 12, total: 0 },
+  };
+
+  const fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => data,
+  });
+
+  vi.stubGlobal('fetch', fetch);
+
+  expect(await getAvisos()).toEqual(data);
+
+  expect(fetch).toHaveBeenCalledWith(
+    '/api/avisos?pagina=1&tamano=12',
+    { credentials: 'same-origin' }
+  );
+});
+
+it('envía correctamente los parámetros de paginación', async () => {
+  const fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ avisos: [] }),
+  });
+
+  vi.stubGlobal('fetch', fetch);
+
+  await getAvisos(2, 5);
+
+  expect(fetch).toHaveBeenCalledWith(
+    '/api/avisos?pagina=2&tamano=5',
+    { credentials: 'same-origin' }
+  );
+});
+
+it('informa cuando la página solicitada no existe', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: false,
+    status: 404,
+    json: async () => ({
+      message: 'La página solicitada no existe.',
+    }),
+  }));
+
+  await expect(getAvisos(999)).rejects.toMatchObject({
+    status: 404,
+    message: 'La página solicitada no existe.',
+  });
+});
+
+it('informa cuando la sesión no es válida', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: false,
+    status: 401,
+    json: async () => ({}),
+  }));
+
+  await expect(getAvisos()).rejects.toMatchObject({
+    status: 401,
+    message: 'Debes iniciar sesión para consultar los avisos.',
+  });
+});
+
+it('no expone errores internos al consultar el feed', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: false,
+    status: 500,
+    json: async () => ({
+      message: 'SQL secreto',
+      errors: { privado: 'secreto' },
+    }),
+  }));
+
+  await expect(getAvisos()).rejects.toMatchObject({
+    status: 500,
+    message: 'No se ha podido completar la operación.',
+    errors: {},
+  });
+});
+
+it('controla los fallos de red al consultar avisos', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockRejectedValue(
+    new Error('sin red')
+  ));
+
+  await expect(getAvisos()).rejects.toMatchObject({
+    status: 0,
+  });
 });

@@ -35,10 +35,36 @@ async function request(path, body) {
     throw new AvisoApiError(0, 'No se pudo conectar con el servidor. Comprueba la conexión.');
   }
   const data = await response.json().catch(() => null);
-  if (!response.ok) throw new AvisoApiError(response.status,
-    messages[response.status] || 'No se ha podido completar la operación.', response.status === 400 ? data?.errors ?? {} : {});
+  if (!response.ok) {
+    const isFeed = path.startsWith('/api/avisos?');
+
+    const feedMessages = {
+      400: 'Revisa los parámetros de paginación.',
+      401: 'Debes iniciar sesión para consultar los avisos.',
+      404: 'La página solicitada no existe.',
+      503: 'La consulta de avisos no está disponible en este momento.',
+    };
+
+    throw new AvisoApiError(
+      response.status,
+      (isFeed ? feedMessages[response.status] : null) ||
+        messages[response.status] ||
+        'No se ha podido completar la operación.',
+      response.status === 400 ? data?.errors ?? {} : {}
+    );
+  }
   if (!data) throw new AvisoApiError(response.status, 'La respuesta del servidor no es válida.');
   return data;
 }
 export const getAvisoOptions = () => request('/api/avisos/opciones');
 export const publishAviso = datos => request('/api/avisos', datos);
+
+// SCRUM-57 / US-014: consulta paginada del feed de avisos.
+export function getAvisos(pagina = 1, tamano = 12) {
+  const params = new URLSearchParams({
+    pagina: String(pagina),
+    tamano: String(tamano),
+  });
+
+  return request(`/api/avisos?${params.toString()}`);
+}

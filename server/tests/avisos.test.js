@@ -24,6 +24,24 @@ async function fixture({ login = true, unavailable = false } = {}) {
       centros: [{ id: CENTRO, nombre: 'Centro ficticio', facultadId: FACULTY, otro: 'secreto' }],
     })),
     publish: vi.fn(async () => ({ id: ID, rasgos: 'secreto', email: user.email })),
+    listActive: vi.fn(async () => ({
+      avisos: [
+        {
+          id: ID,
+          categoria: { id: CATEGORY, nombre: 'Mochilas' },
+          facultad: { id: FACULTY, nombre: 'Facultad ficticia' },
+          centro: { id: CENTRO, nombre: 'Centro ficticio' },
+          descripcion: 'Mochila perdida',
+          fechaPerdida: '2026-01-15',
+          estado: 'Activo',
+          autorId: USER,
+          rasgosPrivados: 'Detalle secreto',
+          contactoEmail: 'privado@example.com',
+          contactoTelefono: '600000000',
+        },
+      ],
+      total: 1,
+    })),
   };
   const app = createApp({ users: { findByEmail: async () => user, findById: async () => user },
     ...(unavailable ? {} : { avisoStorage: storage }), avisoLimit: 2,
@@ -136,5 +154,172 @@ describe('SCRUM-109: contrato HTTP', () => {
     const result = await publish(valid());
     expect(result.status).toBe(500);
     expect(result.body).toEqual({ message: 'No se ha podido completar la operación.' });
+  });
+});
+
+describe('SCRUM-57 / US-014: feed de avisos', () => {
+  it('rechaza la consulta sin sesión', async () => {
+    const { agent, storage } = await fixture({ login: false });
+
+    const result = await agent.get('/api/avisos');
+
+    expect(result.status).toBe(401);
+    expect(storage.listActive).not.toHaveBeenCalled();
+  });
+
+  it('devuelve los avisos activos con paginación por defecto', async () => {
+    const { agent, storage } = await fixture();
+
+    const result = await agent.get('/api/avisos');
+
+    expect(result.status).toBe(200);
+    expect(storage.listActive).toHaveBeenCalledWith(1, 12);
+    expect(result.body.avisos).toHaveLength(1);
+
+    expect(result.body.paginacion).toEqual({
+      pagina: 1,
+      tamano: 12,
+      total: 1,
+      totalPaginas: 1,
+      anterior: false,
+      siguiente: false,
+    });
+  });
+
+  it('devuelve únicamente los campos públicos del aviso', async () => {
+    const { agent } = await fixture();
+
+    const result = await agent.get('/api/avisos');
+
+    expect(result.status).toBe(200);
+
+    expect(result.body.avisos[0]).toEqual({
+      id: ID,
+      categoria: { id: CATEGORY, nombre: 'Mochilas' },
+      facultad: { id: FACULTY, nombre: 'Facultad ficticia' },
+      centro: { id: CENTRO, nombre: 'Centro ficticio' },
+      descripcion: 'Mochila perdida',
+      fechaPerdida: '2026-01-15',
+      estado: 'Activo',
+    });
+
+    expect(result.headers['cache-control']).toBe('no-store');
+  });
+
+  it('permite consultar distintas páginas de resultados', async () => {
+    const { agent, storage } = await fixture();
+
+    const data = await storage.listActive();
+
+    storage.listActive.mockResolvedValue({
+      avisos: data.avisos,
+      total: 30,
+    });
+
+    const result = await agent.get(
+      '/api/avisos?pagina=2&tamano=12'
+    );
+
+    expect(result.status).toBe(200);
+    expect(storage.listActive).toHaveBeenLastCalledWith(2, 12);
+
+    expect(result.body.paginacion).toEqual({
+      pagina: 2,
+      tamano: 12,
+      total: 30,
+      totalPaginas: 3,
+      anterior: true,
+      siguiente: true,
+    });
+  });
+
+  it('informa cuando no existen avisos activos', async () => {
+    const { agent, storage } = await fixture();
+
+    storage.listActive.mockResolvedValueOnce({
+      avisos: [],
+      total: 0,
+    });
+
+    const result = await agent.get('/api/avisos');
+
+    expect(result.status).toBe(200);
+    expect(result.body.avisos).toEqual([]);
+    expect(result.body.message).toBe(
+      'Todavía no hay avisos de pérdida activos.'
+    );
+  });
+
+  it('devuelve 404 si la página solicitada no existe', async () => {
+    const { agent } = await fixture();
+
+    const result = await agent.get('/api/avisos?pagina=2');
+
+    expect(result.status).toBe(404);
+    expect(result.body.message).toBe(
+      'La página solicitada no existe.'
+    );
+    expect(result.body.errors).toHaveProperty('pagina');
+  });
+
+  it.each([
+    ['pagina=0', 'pagina'],
+    ['pagina=-1', 'pagina'],
+    ['pagina=abc', 'pagina'],
+    ['pagina=1.5', 'pagina'],
+    ['tamano=0', 'tamano'],
+    ['tamano=51', 'tamano'],
+    ['tamano=abc', 'tamano'],
+    ['tamano=2.5', 'tamano'],
+    ['pagina=1e2', 'pagina'],
+    ['pagina=0x10', 'pagina'],
+    ['pagina=', 'pagina'],
+    ['pagina=1&pagina=2', 'pagina'],
+    ['tamano=1e1', 'tamano'],
+    ['tamano=', 'tamano'],
+    ['tamano=12&tamano=20', 'tamano'],
+  ])('rechaza paginación incorrecta: %s', async (query, field) => {
+    const { agent, storage } = await fixture();
+
+    const result = await agent.get(`/api/avisos?${query}`);
+
+    expect(result.status).toBe(400);
+    expect(result.body.errors).toHaveProperty(field);
+    expect(storage.listActive).not.toHaveBeenCalled();
+  });
+
+  it('impide el acceso a usuarios desactivados', async () => {
+    const { agent, user, storage } = await fixture();
+
+    user.activo = false;
+
+    const result = await agent.get('/api/avisos');
+
+    expect(result.status).toBe(401);
+    expect(storage.listActive).not.toHaveBeenCalled();
+  });
+
+  it('devuelve 503 cuando no hay almacenamiento disponible', async () => {
+    const { agent } = await fixture({ unavailable: true });
+
+    const result = await agent.get('/api/avisos');
+
+    expect(result.status).toBe(503);
+  });
+
+  it('no expone información privada ante errores internos', async () => {
+    const { agent, storage } = await fixture();
+
+    storage.listActive.mockRejectedValueOnce(
+      new Error('SQL secreto privado@example.com')
+    );
+
+    const result = await agent.get('/api/avisos');
+
+    expect(result.status).toBe(500);
+    expect(result.body.message).toBe(
+      'No se ha podido completar la operación.'
+    );
+    expect(JSON.stringify(result.body)).not.toContain('secreto');
   });
 });
