@@ -55,6 +55,32 @@ Gestionar hallazgos propios (US-010: SCRUM-114, API; SCRUM-113, pantalla):
 - Las fotos públicas de la búsqueda usan la misma forma de URL con una posición del 1 al 5 (`/imagenes/1`). Con un UUID se sirve la foto privada del autor.
 - Pruebas: `server/tests/gestion-hallazgos.test.js` y `server/tests/mis-hallazgos.test.js` (API), `client/src/MyFindingsPage.test.jsx` (pantalla), `server/tests/hallazgos-storage.postgres.test.js` y `server/tests/mis-hallazgos.postgres.test.js` (PostgreSQL real).
 
+Publicar avisos de pérdida (US-013: SCRUM-109, API; SCRUM-52, formulario de Luis):
+
+- Ejecutar `npm.cmd run db:migrate` después de actualizar: `009-avisos.sql` crea `centros`, `avisos` y `aviso_datos_privados`, sin borrar datos ni añadir ejemplos. Categorías y facultades reutilizan los catálogos de hallazgos. Si están vacíos en desarrollo, el comando existente `npm.cmd run db:seed-dev` carga datos ficticios; no se requiere un centro para publicar.
+- `GET /api/avisos/opciones`, con sesión: `{ categorias: [{ id, nombre }], facultades: [{ id, nombre }], centros: [{ id, nombre, facultadId }] }`. Solo opciones activas. Para un centro se exige que su facultad también esté activa.
+- `POST /api/avisos`, con sesión, origen permitido y `Content-Type: application/json`. Obligatorios: `categoriaId`, `descripcion`, `fechaPerdida` y **una facultad o un centro** (`facultadId` o `centroId`). Si se envían ambos, deben corresponderse. Al seleccionar solo un centro, el servidor obtiene su facultad. Opcionales: `centroId`, `rasgosPrivados`, `contactoEmail` y `contactoTelefono`; pueden omitirse, ser `null` o textos vacíos. Nunca enviar `autorId` ni `estado`: los fija el servidor.
+
+```json
+{
+  "categoriaId": "UUID-del-catalogo",
+  "facultadId": "UUID-del-catalogo",
+  "descripcion": "He perdido una mochila ficticia",
+  "fechaPerdida": "2026-01-15",
+  "rasgosPrivados": "Detalle que no debe salir en el feed",
+  "contactoEmail": "contacto@example.com",
+  "contactoTelefono": "600000000"
+}
+```
+
+- Límites técnicos de implementación (no horas ni requisitos nuevos del profesor): descripción y rasgos de hasta 2000 caracteres; fecha aproximada `AAAA-MM-DD`, existente y no futura según UTC; correo opcional válido de hasta 254 caracteres y teléfono opcional de 9 cifras con `+34` opcional, como el perfil. Sin fotos: esta historia publica avisos, no hallazgos.
+- Respuesta 201: `{ message: "Aviso de pérdida publicado correctamente.", aviso: { id, estado: "Activo" } }`. Guarda el autor de la sesión y todo el aviso en una transacción; no crea hallazgos ni solicitudes. Los rasgos y los contactos voluntarios quedan en `aviso_datos_privados`, separados de `avisos`, y no se devuelven en esta respuesta ni se copian desde el perfil.
+- Errores: 400 `{ message, errors: { nombreCampo: "Explicación" } }`, incluidos catálogos inexistentes/inactivos o centro de otra facultad; 401 sin sesión/cuenta desactivada; 403 origen no autorizado; 413 más de 32 KiB; 415 sin JSON; 429 más de 30 publicaciones por IP en 15 minutos; 503 sin almacenamiento configurado; 500 error interno sin detalles privados. No se guardan filas ante errores de validación o un fallo de la transacción.
+- **Conexión para Luis**: importar `getAvisoOptions` y `publishAviso` de `client/src/api/avisos.js`. Cargar catálogos al abrir el formulario, enviar sus UUID y mostrar `error.errors[campo]` como texto. Usan la cookie de sesión existente; no se añade JWT ni almacenamiento de credenciales. Tras 201 mostrar confirmación; ante un fallo de red no repetir automáticamente el POST porque podría haberse guardado. Deshabilitar el botón mientras se envía.
+- El formulario debe mostrar el aviso de US-013-AC-07: «Este aviso no inicia una solicitud de recuperación ni implica que el objeto esté bajo custodia de la Universidad». El campo de contacto es voluntario: no rellenarlo con el correo de la cuenta sin decisión del usuario.
+- El feed pertenece a US-014. Al conectarlo, consultar solo los campos públicos de `avisos` y no incluir `aviso_datos_privados` ni el correo del autor. Este cambio no implementa el formulario ni el feed.
+- Pruebas: `server/tests/avisos.test.js` (API, validación y permisos), `client/src/api/avisos.test.jsx` (contrato del módulo para React), `server/tests/avisos.postgres.test.js` (persistencia real, opciones activas, selección de centro, privacidad y rollback). Esta última ya está incluida en `npm.cmd run test:db`.
+
 Recuperación de contraseña (SCRUM-43, API; SCRUM-94, pantallas React):
 
 - Arrancar el buzón local con `docker compose up -d mail` y abrir `http://localhost:8025`. Solo captura correos de pruebas; no los entrega por Internet.

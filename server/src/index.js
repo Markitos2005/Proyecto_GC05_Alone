@@ -7,6 +7,7 @@ import { createRecoveryTokens } from './services/recoveryTokens.js';
 import { createRecoveryService } from './services/recovery.js';
 import { createRecoveryMailer } from './services/recoveryMail.js';
 import { createHallazgoRepository } from './repositories/hallazgos.js';
+import { createAvisoRepository } from './repositories/avisos.js';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('Configura DATABASE_URL en .env');
@@ -30,6 +31,7 @@ const app = createApp({
   sessionMiddleware,
   // SCRUM-105: hallazgos, rasgos privados y fotos en PostgreSQL.
   hallazgoStorage: createHallazgoRepository(pool),
+  avisoStorage: createAvisoRepository(pool),
   recovery: createRecoveryService({
     tokens: createRecoveryTokens(createRecoveryTokenRepository(pool)),
     sendRecovery: createRecoveryMailer({

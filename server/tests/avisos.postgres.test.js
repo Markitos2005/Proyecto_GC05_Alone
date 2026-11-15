@@ -1,0 +1,127 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import pg from 'pg';
+import request from 'supertest';
+import { createApp } from '../src/app.js';
+import { createUserRepository } from '../src/repositories/users.js';
+import { createAvisoRepository } from '../src/repositories/avisos.js';
+import { createSessionMiddleware } from '../src/security/sessions.js';
+import { hashPassword } from '../src/security/passwords.js';
+
+test('SCRUM-109: publicación real de avisos, privacidad y transacciones PostgreSQL', async (t) => {
+  assert.ok(process.env.TEST_DATABASE_URL, 'Configura TEST_DATABASE_URL independiente.');
+  assert.notEqual(process.env.TEST_DATABASE_URL, process.env.DATABASE_URL);
+  const schema = `avisos_test_${randomUUID().replaceAll('-', '')}`;
+  const admin = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
+  await admin.query(`CREATE SCHEMA "${schema}"`);
+  const pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL, options: `-c search_path=${schema}` });
+  try {
+    for (const name of ['001-usuarios.sql', '002-sesiones.sql', '003-perfil.sql', '007-hallazgos.sql', '009-avisos.sql', '009-avisos.sql']) {
+      await pool.query(await readFile(new URL(`../db/migrations/${name}`, import.meta.url), 'utf8'));
+    }
+    const [userId, faculty, otherFaculty, category, centre, inactiveCategory, inactiveCentre] = Array.from({ length: 7 }, () => randomUUID());
+    const password = await hashPassword('Prueba1234');
+    await pool.query('INSERT INTO usuarios (id, email, password_hash, nombre, apellidos) VALUES ($1, $2, $3, $4, $5)',
+      [userId, 'persona@example.com', password, 'Persona', 'Ficticia']);
+    await pool.query('INSERT INTO facultades (id, nombre) VALUES ($1, $2), ($3, $4)',
+      [faculty, 'Facultad ficticia', otherFaculty, 'Otra facultad ficticia']);
+    await pool.query('INSERT INTO categorias (id, nombre, activo) VALUES ($1, $2, TRUE), ($3, $4, FALSE)',
+      [category, 'Categoría ficticia', inactiveCategory, 'Categoría inactiva']);
+    await pool.query('INSERT INTO centros (id, facultad_id, nombre, activo) VALUES ($1, $2, $3, TRUE), ($4, $2, $5, FALSE)',
+      [centre, faculty, 'Centro ficticio', inactiveCentre, 'Centro inactivo']);
+    const storage = createAvisoRepository(pool);
+    const app = createApp({ users: createUserRepository(pool), avisoStorage: storage, avisoLimit: 100,
+      sessionMiddleware: createSessionMiddleware(pool, 'secreto-ficticio-avisos-postgres-mas-de-32') });
+    const agent = request.agent(app);
+    assert.equal((await agent.post('/api/auth/login').send({ email: 'persona@example.com', password: 'Prueba1234' })).status, 200);
+    const valid = () => ({ categoriaId: category, facultadId: faculty,
+      descripcion: 'Mochila ficticia perdida', fechaPerdida: '2026-01-15' });
+    const publish = body => agent.post('/api/avisos').set('Origin', 'http://localhost:5173').send(body);
+    const count = async table => Number((await pool.query(`SELECT count(*) AS n FROM ${table}`)).rows[0].n);
+
+    await t.test('opciones reales: solo catálogos activos y centros de facultades activas', async () => {
+      const result = await agent.get('/api/avisos/opciones');
+      assert.equal(result.status, 200);
+      assert.deepEqual(result.body.categorias, [{ id: category, nombre: 'Categoría ficticia' }]);
+      assert.deepEqual(result.body.centros, [{ id: centre, nombre: 'Centro ficticio', facultadId: faculty }]);
+    });
+    await t.test('guarda autor de sesión, fecha sin desplazamiento y estado Activo sin crear un hallazgo', async () => {
+      const result = await publish(valid());
+      assert.equal(result.status, 201);
+      const { rows } = await pool.query(`SELECT autor_id, estado, centro_id, to_char(fecha_perdida, 'YYYY-MM-DD') AS fecha
+        FROM avisos WHERE id = $1`, [result.body.aviso.id]);
+      assert.deepEqual(rows[0], { autor_id: userId, estado: 'Activo', centro_id: null, fecha: '2026-01-15' });
+      assert.equal(await count('hallazgos'), 0);
+      assert.equal(await count('aviso_datos_privados'), 0);
+    });
+    await t.test('rasgos y contacto opcional se guardan aparte y no aparecen en la respuesta', async () => {
+      const result = await publish({ ...valid(), rasgosPrivados: 'Llave privada', contactoEmail: 'contacto@example.com', contactoTelefono: '+34600000000' });
+      assert.equal(result.status, 201);
+      const { rows } = await pool.query('SELECT rasgos, contacto_email, contacto_telefono FROM aviso_datos_privados WHERE aviso_id = $1', [result.body.aviso.id]);
+      assert.deepEqual(rows[0], { rasgos: 'Llave privada', contacto_email: 'contacto@example.com', contacto_telefono: '+34600000000' });
+      assert.deepEqual(Object.keys(result.body.aviso).sort(), ['estado', 'id']);
+      const publicColumns = (await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = 'avisos'`, [schema])).rows.map(row => row.column_name);
+      for (const field of ['rasgos', 'contacto_email', 'contacto_telefono']) assert.equal(publicColumns.includes(field), false);
+    });
+    await t.test('seleccionar solo un centro resuelve su facultad en el servidor', async () => {
+      const result = await publish({ ...valid(), facultadId: null, centroId: centre });
+      assert.equal(result.status, 201);
+      const { rows } = await pool.query('SELECT facultad_id, centro_id FROM avisos WHERE id = $1', [result.body.aviso.id]);
+      assert.deepEqual(rows[0], { facultad_id: faculty, centro_id: centre });
+    });
+    for (const [label, changes, field] of [
+      ['categoría inexistente', { categoriaId: randomUUID() }, 'categoriaId'],
+      ['categoría inactiva', { categoriaId: inactiveCategory }, 'categoriaId'],
+      ['facultad inexistente', { facultadId: randomUUID() }, 'facultadId'],
+      ['centro inexistente', { centroId: randomUUID() }, 'centroId'],
+      ['centro inactivo', { centroId: inactiveCentre }, 'centroId'],
+      ['centro de otra facultad', { facultadId: otherFaculty, centroId: centre }, 'centroId'],
+      ['campos vacíos', { descripcion: '' }, 'descripcion'],
+      ['texto demasiado largo', { descripcion: 'a'.repeat(2001) }, 'descripcion'],
+    ]) {
+      await t.test(`${label}: 400 sin filas incompletas`, async () => {
+        const before = await count('avisos');
+        const result = await publish({ ...valid(), ...changes });
+        assert.equal(result.status, 400);
+        assert.ok(result.body.errors[field]);
+        assert.equal(await count('avisos'), before);
+      });
+    }
+    await t.test('facultad desactivada después de abrir el formulario: rechazo al enviar', async () => {
+      await pool.query('UPDATE facultades SET activo = FALSE WHERE id = $1', [faculty]);
+      assert.equal((await publish(valid())).status, 400);
+      assert.equal((await agent.get('/api/avisos/opciones')).body.centros.length, 0);
+      await pool.query('UPDATE facultades SET activo = TRUE WHERE id = $1', [faculty]);
+    });
+    await t.test('una cadena SQL en la descripción se guarda como texto, sin ejecutar instrucciones', async () => {
+      const descripcion = "Mochila'); DROP TABLE avisos; --";
+      const result = await publish({ ...valid(), descripcion });
+      assert.equal(result.status, 201);
+      assert.equal((await pool.query('SELECT descripcion FROM avisos WHERE id = $1', [result.body.aviso.id])).rows[0].descripcion, descripcion);
+    });
+    await t.test('si falla el guardado privado, se revierte también el aviso público', async () => {
+      await pool.query(`CREATE FUNCTION rechazar_privados_test() RETURNS trigger LANGUAGE plpgsql AS $$
+        BEGIN RAISE EXCEPTION 'fallo interno ficticio'; END $$;
+        CREATE TRIGGER fallo_privado_test BEFORE INSERT ON aviso_datos_privados FOR EACH ROW EXECUTE FUNCTION rechazar_privados_test()`);
+      const before = await count('avisos');
+      const result = await publish({ ...valid(), rasgosPrivados: 'Provocar rollback' });
+      assert.equal(result.status, 500);
+      assert.equal(await count('avisos'), before);
+      assert.equal(JSON.stringify(result.body).includes('fallo interno'), false);
+      await pool.query('DROP TRIGGER fallo_privado_test ON aviso_datos_privados; DROP FUNCTION rechazar_privados_test()');
+    });
+    await t.test('el repositorio revalida la cuenta desactivada dentro de la transacción', async () => {
+      await pool.query('UPDATE usuarios SET activo = FALSE WHERE id = $1', [userId]);
+      const before = await count('avisos');
+      await assert.rejects(storage.publish(userId, valid()), error => error.status === 401);
+      assert.equal(await count('avisos'), before);
+      assert.equal((await publish(valid())).status, 401);
+    });
+  } finally {
+    await pool.end();
+    await admin.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+    await admin.end();
+  }
+});
