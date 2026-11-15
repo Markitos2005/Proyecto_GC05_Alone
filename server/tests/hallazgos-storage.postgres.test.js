@@ -22,7 +22,7 @@ test('SCRUM-105: hallazgos, rasgos privados y fotos guardados de forma atómica 
   const pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL, options: `-c search_path=${schema}` });
   try {
     // 007 se aplica dos veces: la migración debe ser idempotente.
-    for (const name of ['001-usuarios.sql', '002-sesiones.sql', '003-perfil.sql', '007-hallazgos.sql', '007-hallazgos.sql']) {
+    for (const name of ['001-usuarios.sql', '002-sesiones.sql', '003-perfil.sql', '007-hallazgos.sql', '007-hallazgos.sql','008-historial-hallazgos.sql','008-historial-hallazgos.sql']) {
       await pool.query(await readFile(new URL(`../db/migrations/${name}`, import.meta.url), 'utf8'));
     }
     const storage = createHallazgoRepository(pool);
@@ -99,6 +99,370 @@ test('SCRUM-105: hallazgos, rasgos privados y fotos guardados de forma atómica 
         assert.equal(metadata.exif, undefined);
       }
       assert.equal(JSON.stringify(result.body).includes('Llavero'), false);
+    });
+
+    await t.test('SCRUM-114: el propietario edita un hallazgo Activo sin cambiar el autor', async () => {
+      const publicado = await publish(datos, 1);
+      assert.equal(publicado.status, 201);
+
+      const id = publicado.body.hallazgo.id;
+
+      const response = await agent
+        .patch(`/api/hallazgos/${id}`)
+        .set('Origin', ORIGIN)
+        .send({
+          descripcion: 'Mochila azul con cremallera negra',
+          rasgosPrivados: 'Etiqueta interior con iniciales',
+        });
+
+      assert.equal(response.status, 200);
+
+      const { rows: [hallazgo] } = await pool.query(
+        'SELECT autor_id, descripcion, estado FROM hallazgos WHERE id = $1',
+        [id],
+      );
+
+      assert.equal(hallazgo.autor_id, autor);
+      assert.equal(hallazgo.descripcion, 'Mochila azul con cremallera negra');
+      assert.equal(hallazgo.estado, 'Activo');
+
+      const { rows: [privados] } = await pool.query(
+        'SELECT rasgos FROM hallazgo_rasgos_privados WHERE hallazgo_id = $1',
+        [id],
+      );
+
+      assert.equal(privados.rasgos, 'Etiqueta interior con iniciales');
+    });
+
+    await t.test('SCRUM-114: otro usuario no puede editar un hallazgo ajeno', async () => {
+      const publicado = await publish(datos, 1);
+      assert.equal(publicado.status, 201);
+
+      const id = publicado.body.hallazgo.id;
+      const otroUsuario = randomUUID();
+
+      await pool.query(
+        `INSERT INTO usuarios (id, email, password_hash, nombre, apellidos, activo)
+        VALUES ($1, $2, $3, $4, $5, TRUE)`,
+        [otroUsuario, 'otro@example.com', password, 'Otro', 'Usuario'],
+      );
+
+      const otroAgent = request.agent(app);
+      const login = await otroAgent.post('/api/auth/login').send({
+        email: 'otro@example.com',
+        password: 'Prueba1234',
+      });
+      assert.equal(login.status, 200);
+
+      const response = await otroAgent
+        .patch(`/api/hallazgos/${id}`)
+        .set('Origin', ORIGIN)
+        .send({ descripcion: 'Modificación no autorizada' });
+
+      assert.equal(response.status, 404);
+
+      const { rows: [hallazgo] } = await pool.query(
+        'SELECT autor_id, descripcion FROM hallazgos WHERE id = $1',
+        [id],
+      );
+
+      assert.equal(hallazgo.autor_id, autor);
+      assert.equal(hallazgo.descripcion, 'Mochila ficticia de color azul');
+    });
+
+    await t.test('SCRUM-114: no permite editar hallazgos Devueltos ni Retirados', async () => {
+      for (const estado of ['Devuelto', 'Retirado']) {
+        const publicado = await publish(datos, 1);
+        assert.equal(publicado.status, 201);
+
+        const id = publicado.body.hallazgo.id;
+
+        // Preparación del escenario: todavía no existe el endpoint
+        // para cambiar el estado mediante la API.
+        await pool.query(
+          'UPDATE hallazgos SET estado = $1 WHERE id = $2',
+          [estado, id],
+        );
+
+        const response = await agent
+          .patch(`/api/hallazgos/${id}`)
+          .set('Origin', ORIGIN)
+          .send({ descripcion: 'Intento de edición posterior' });
+
+        assert.equal(response.status, 409);
+
+        const { rows: [hallazgo] } = await pool.query(
+          'SELECT autor_id, descripcion, estado FROM hallazgos WHERE id = $1',
+          [id],
+        );
+
+        assert.equal(hallazgo.autor_id, autor);
+        assert.equal(hallazgo.estado, estado);
+        assert.equal(hallazgo.descripcion, 'Mochila ficticia de color azul');
+      }
+    });
+
+    await t.test('SCRUM-114: cambiar a Devuelto registra el historial', async () => {
+      const publicado = await publish(datos, 1);
+      assert.equal(publicado.status, 201);
+
+      const id = publicado.body.hallazgo.id;
+
+      const response = await agent
+        .patch(`/api/hallazgos/${id}/estado`)
+        .set('Origin', ORIGIN)
+        .send({
+          estado: 'Devuelto',
+          motivo: 'Entregado a su propietario',
+        });
+
+      assert.equal(response.status, 200);
+      assert.equal(response.body.hallazgo.id, id);
+      assert.equal(response.body.hallazgo.estado, 'Devuelto');
+
+      const { rows: [hallazgo] } = await pool.query(
+        'SELECT autor_id, estado FROM hallazgos WHERE id = $1',
+        [id],
+      );
+
+      assert.equal(hallazgo.autor_id, autor);
+      assert.equal(hallazgo.estado, 'Devuelto');
+
+      const { rows: historial } = await pool.query(
+        `SELECT usuario_id, estado_anterior, estado_nuevo, motivo, created_at
+        FROM hallazgo_historial_estados
+        WHERE hallazgo_id = $1`,
+        [id],
+      );
+
+      assert.equal(historial.length, 1);
+      assert.equal(historial[0].usuario_id, autor);
+      assert.equal(historial[0].estado_anterior, 'Activo');
+      assert.equal(historial[0].estado_nuevo, 'Devuelto');
+      assert.equal(historial[0].motivo, 'Entregado a su propietario');
+      assert.ok(historial[0].created_at instanceof Date);
+    });
+
+    await t.test('SCRUM-114: solo el propietario puede consultar el historial', async () => {
+      const publicado = await publish(datos, 1);
+      assert.equal(publicado.status, 201);
+
+      const id = publicado.body.hallazgo.id;
+
+      // El historial de un hallazgo recién publicado está vacío.
+      const inicial = await agent.get(`/api/hallazgos/${id}/historial`);
+      assert.equal(inicial.status, 200);
+      assert.deepEqual(inicial.body.historial, []);
+
+      // El propietario cambia el estado.
+      const cambio = await agent
+        .patch(`/api/hallazgos/${id}/estado`)
+        .set('Origin', ORIGIN)
+        .send({
+          estado: 'Devuelto',
+          motivo: 'Entregado en conserjería',
+        });
+
+      assert.equal(cambio.status, 200);
+
+      // El propietario puede consultar el cambio registrado.
+      const consulta = await agent.get(`/api/hallazgos/${id}/historial`);
+      assert.equal(consulta.status, 200);
+      assert.equal(consulta.body.historial.length, 1);
+
+      const registro = consulta.body.historial[0];
+      assert.equal(registro.usuarioId, autor);
+      assert.equal(registro.estadoAnterior, 'Activo');
+      assert.equal(registro.estadoNuevo, 'Devuelto');
+      assert.equal(registro.motivo, 'Entregado en conserjería');
+      assert.ok(registro.fecha);
+
+      // Otro usuario autenticado no puede consultar este historial.
+      const otroUsuario = randomUUID();
+
+      await pool.query(
+        `INSERT INTO usuarios (id, email, password_hash, nombre, apellidos, activo)
+        VALUES ($1, $2, $3, $4, $5, TRUE)`,
+        [otroUsuario, 'otro-historial@example.com', password, 'Otro', 'Usuario'],
+      );
+
+      const otroAgent = request.agent(app);
+      const login = await otroAgent.post('/api/auth/login').send({
+        email: 'otro-historial@example.com',
+        password: 'Prueba1234',
+      });
+
+      assert.equal(login.status, 200);
+
+      const ajeno = await otroAgent.get(`/api/hallazgos/${id}/historial`);
+      assert.equal(ajeno.status, 404);
+      assert.equal(ajeno.body.historial, undefined);
+    });
+
+    await t.test('SCRUM-114: solo el propietario puede consultar sus imágenes', async () => {
+      const publicado = await publish(datos, 1);
+      assert.equal(publicado.status, 201);
+
+      const id = publicado.body.hallazgo.id;
+
+      // Obtener el identificador de la imagen almacenada.
+      const { rows: [imagen] } = await pool.query(
+        `SELECT id, mime, datos
+        FROM hallazgo_imagenes
+        WHERE hallazgo_id = $1`,
+        [id],
+      );
+
+      assert.ok(imagen);
+
+      // El propietario puede recuperar la imagen.
+      const propia = await agent.get(
+        `/api/hallazgos/${id}/imagenes/${imagen.id}`,
+      );
+
+      assert.equal(propia.status, 200);
+      assert.equal(propia.headers['content-type'], 'image/jpeg');
+      assert.equal(propia.headers['cache-control'], 'private, no-store');
+      assert.deepEqual(propia.body, imagen.datos);
+
+      // Crear un segundo usuario con su propia sesión.
+      const otroUsuario = randomUUID();
+
+      await pool.query(
+        `INSERT INTO usuarios (id, email, password_hash, nombre, apellidos, activo)
+        VALUES ($1, $2, $3, $4, $5, TRUE)`,
+        [otroUsuario, 'otro-imagen@example.com', password, 'Otro', 'Usuario'],
+      );
+
+      const otroAgent = request.agent(app);
+
+      const login = await otroAgent.post('/api/auth/login').send({
+        email: 'otro-imagen@example.com',
+        password: 'Prueba1234',
+      });
+
+      assert.equal(login.status, 200);
+
+      // Conocer los identificadores no permite acceder a la imagen ajena.
+      const ajena = await otroAgent.get(
+        `/api/hallazgos/${id}/imagenes/${imagen.id}`,
+      );
+
+      assert.equal(ajena.status, 404);
+
+      // Tampoco se puede acceder sin iniciar sesión.
+      const anonima = await request(app).get(
+        `/api/hallazgos/${id}/imagenes/${imagen.id}`,
+      );
+
+      assert.equal(anonima.status, 401);
+    });
+
+    await t.test('SCRUM-114: Retirado queda registrado y no se puede reactivar', async () => {
+      const publicado = await publish(datos, 1);
+      assert.equal(publicado.status, 201);
+
+      const id = publicado.body.hallazgo.id;
+
+      const retirar = await agent
+        .patch(`/api/hallazgos/${id}/estado`)
+        .set('Origin', ORIGIN)
+        .send({
+          estado: 'Retirado',
+          motivo: 'El autor retira el anuncio',
+        });
+
+      assert.equal(retirar.status, 200);
+      assert.equal(retirar.body.hallazgo.estado, 'Retirado');
+
+      const reactivar = await agent
+        .patch(`/api/hallazgos/${id}/estado`)
+        .set('Origin', ORIGIN)
+        .send({ estado: 'Activo' });
+
+      assert.equal(reactivar.status, 400);
+
+      const cambiarOtraVez = await agent
+        .patch(`/api/hallazgos/${id}/estado`)
+        .set('Origin', ORIGIN)
+        .send({ estado: 'Devuelto' });
+
+      assert.equal(cambiarOtraVez.status, 409);
+
+      const { rows: [hallazgo] } = await pool.query(
+        'SELECT autor_id, estado FROM hallazgos WHERE id = $1',
+        [id],
+      );
+
+      assert.equal(hallazgo.autor_id, autor);
+      assert.equal(hallazgo.estado, 'Retirado');
+
+      const { rows: historial } = await pool.query(
+        `SELECT usuario_id, estado_anterior, estado_nuevo, motivo, created_at
+        FROM hallazgo_historial_estados
+        WHERE hallazgo_id = $1`,
+        [id],
+      );
+
+      assert.equal(historial.length, 1);
+      assert.equal(historial[0].usuario_id, autor);
+      assert.equal(historial[0].estado_anterior, 'Activo');
+      assert.equal(historial[0].estado_nuevo, 'Retirado');
+      assert.equal(historial[0].motivo, 'El autor retira el anuncio');
+      assert.ok(historial[0].created_at instanceof Date);
+    });
+
+    await t.test('SCRUM-114: otro usuario no puede cambiar el estado de un hallazgo ajeno', async () => {
+      const publicado = await publish(datos, 1);
+      assert.equal(publicado.status, 201);
+
+      const id = publicado.body.hallazgo.id;
+
+      const otroUsuario = randomUUID();
+
+      await pool.query(
+        `INSERT INTO usuarios (id, email, password_hash, nombre, apellidos, activo)
+        VALUES ($1, $2, $3, $4, $5, TRUE)`,
+        [otroUsuario, 'otro-estado@example.com', password, 'Otro', 'Usuario'],
+      );
+
+      const otroAgent = request.agent(app);
+
+      const login = await otroAgent.post('/api/auth/login').send({
+        email: 'otro-estado@example.com',
+        password: 'Prueba1234',
+      });
+
+      assert.equal(login.status, 200);
+
+      for (const estado of ['Devuelto', 'Retirado']) {
+        const response = await otroAgent
+          .patch(`/api/hallazgos/${id}/estado`)
+          .set('Origin', ORIGIN)
+          .send({
+            estado,
+            motivo: 'Intento no autorizado',
+          });
+
+        assert.equal(response.status, 404);
+      }
+
+      const { rows: [hallazgo] } = await pool.query(
+        'SELECT autor_id, estado FROM hallazgos WHERE id = $1',
+        [id],
+      );
+
+      assert.equal(hallazgo.autor_id, autor);
+      assert.equal(hallazgo.estado, 'Activo');
+
+      const { rows: [historial] } = await pool.query(
+        `SELECT count(*)::int AS total
+        FROM hallazgo_historial_estados
+        WHERE hallazgo_id = $1`,
+        [id],
+      );
+
+      assert.equal(historial.total, 0);
     });
 
     await t.test('sin rasgos privados ni punto de entrega no crea filas vacías', async () => {

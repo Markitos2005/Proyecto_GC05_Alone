@@ -41,3 +41,29 @@ export function publishHallazgo(datos, files) {
   for (const file of files) form.append('imagenes', file);
   return send('/api/hallazgos', { method: 'POST', body: form });
 }
+
+export function searchHallazgos(filters = {}) {
+  const params = new URLSearchParams();
+
+  const fields = [
+    'q',
+    'categoriaId',
+    'facultadId',
+    'fechaDesde',
+    'fechaHasta',
+    'pagina',
+    'tamano',
+    'corte',
+  ];
+
+  for (const field of fields) {
+    const value = filters[field];
+
+    if (value !== undefined && value !== null && value !== '') {
+      params.set(field, String(value));
+    }
+  }
+
+  const query = params.toString();
+  return send(`/api/hallazgos${query ? `?${query}` : ''}`);
+}

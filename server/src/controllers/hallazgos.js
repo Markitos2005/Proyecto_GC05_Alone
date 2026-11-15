@@ -28,8 +28,80 @@ export function receiveHallazgo(req, res, next) {
 
 export function hallazgoController(service) {
   return {
+    listOwn: async (req, res, next) => {
+      try { return res.json(await service.listOwn(req.user.id)); } catch (error) { return next(error); }
+    },
+    getOwn: async (req, res, next) => {
+      try {
+        const result = await service.getOwn(req.user.id, req.params.id);
+        return res.status(200).json(result);
+      } catch (error) {
+        return next(error);
+      }
+    },
+    getOwnImage: async (req, res, next) => {
+      try {
+        const imagen = await service.getOwnImage(
+          req.user.id,
+          req.params.id,
+          req.params.imagenId,
+        );
+
+        res.set('Content-Type', imagen.mime);
+        res.set('Cache-Control', 'private, no-store');
+        res.set('X-Content-Type-Options', 'nosniff');
+
+        return res.status(200).send(imagen.datos);
+      } catch (error) {
+        return next(error);
+      }
+    },
+    getOwnHistory: async (req, res, next) => {
+      try {
+        const result = await service.getOwnHistory(
+          req.user.id,
+          req.params.id,
+        );
+
+        return res.status(200).json(result);
+      } catch (error) {
+        return next(error);
+      }
+    },
+    updateOwn: async (req, res, next) => {
+      try {
+        const result = await service.updateOwn(req.user.id, req.params.id, req.body);
+        return res.status(200).json(result);
+      } catch (error) {
+        return next(error);
+      }
+    },
+    changeOwnState: async (req, res, next) => {
+      try {
+        const result = await service.changeOwnState(
+          req.user.id,
+          req.params.id,
+          req.body,
+        );
+
+        return res.status(200).json(result);
+      } catch (error) {
+        return next(error);
+      }
+    },
     options: async (req, res, next) => {
       try { return res.json(await service.options(req.user.id)); } catch (error) { return next(error); }
+    },
+    search: async (req, res, next) => {
+      try { return res.json(await service.search(req.query)); } catch (error) { return next(error); }
+    },
+    image: async (req, res, next) => {
+      try {
+        const image = await service.image(req.params.id, req.params.posicion);
+        // Solo JPG/PNG ya verificados al publicar; caché breve y privada porque el hallazgo puede retirarse.
+        res.set({ 'Content-Type': image.mime, 'Cache-Control': 'private, max-age=300', 'Content-Disposition': 'inline' });
+        return res.send(image.datos);
+      } catch (error) { return next(error); }
     },
     publish: async (req, res, next) => {
       try {
