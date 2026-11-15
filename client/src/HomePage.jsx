@@ -141,6 +141,15 @@ export function HomePage({
                   </a>
                 </p>
               </>
+            ) : title === 'Avisos de pérdida' && user && !demo ? (
+              <>
+                <p>
+                  <a href="#publicar-aviso">
+                    Publicar un aviso de pérdida
+                  </a>
+                </p>
+                <p className="help">Consulta de avisos pendiente · US-014</p>
+              </>
             ) : (
               <p className="help">{status}</p>
             )}

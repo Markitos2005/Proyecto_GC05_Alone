@@ -8,6 +8,7 @@ import { ForgotPasswordForm, ResetPasswordForm } from './RecoveryForms.jsx';
 import { PublishFindingPage } from './PublishFindingPage.jsx';
 import { SearchFindingsPage } from './SearchFindingsPage.jsx';
 import { MyFindingsPage } from './MyFindingsPage.jsx';
+import { PublishLostNoticePage } from './PublishLostNoticePage.jsx';
 
 /** Navegación de registro, inicio de sesión, perfil y cierre de sesión. */
 export function App() {
@@ -106,6 +107,11 @@ export function App() {
   // US-009: buscar hallazgos.
   if (hash === '#buscar-hallazgos' && !demo) {
     return <SearchFindingsPage />;
+  }
+
+  // US-013: publicar un aviso de pérdida.
+  if (hash === '#publicar-aviso' && !demo) {
+    return <PublishLostNoticePage />;
   }
 
   // Portada pública o pantalla del usuario autenticado.
