@@ -160,7 +160,7 @@ export function SearchFindingsPage() {
     setFilters(EMPTY_FILTERS);
     setCorte(null);
 
-    loadResults(EMPTY_FILTERS, 1);
+    void loadResults(EMPTY_FILTERS, 1);
   }
 
   function handlePageChange(page) {
