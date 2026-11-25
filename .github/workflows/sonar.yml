@@ -37,7 +37,6 @@ jobs:
               "client/src/api/misHallazgos.js",
               "client/src/PublishFindingPage.test.jsx",
               "client/src/SearchFindingsPage.test.jsx",
-              "client/src/MyFindingsPage.test.jsx",
               "client/src/api/hallazgos.test.jsx",
           }
 
