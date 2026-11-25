@@ -31,8 +31,7 @@ jobs:
 
           permitidos = {
               "client/src/PublishFindingPage.jsx",
-              "client/src/SearchFindingsPage.jsx",
-              "client/src/MyFindingsPage.jsx",
+              "client/src/SearchFindingsPage.js",
               "client/src/api/hallazgos.js",
               "client/src/api/misHallazgos.js",
               "client/src/PublishFindingPage.test.jsx",
