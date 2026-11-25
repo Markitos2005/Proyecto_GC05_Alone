@@ -91,7 +91,7 @@ export function SearchFindingsPage() {
       }
     }
 
-    loadOptions();
+    void loadOptions();
 
     return () => {
       cancelled = true;
