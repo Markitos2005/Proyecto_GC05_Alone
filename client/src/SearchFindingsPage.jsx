@@ -165,7 +165,7 @@ export function SearchFindingsPage() {
 
   function handlePageChange(page) {
     // Al cambiar de página mantenemos el mismo corte.
-    loadResults(filters, page, corte);
+    void loadResults(filters, page, corte);
   }
 
   return (
