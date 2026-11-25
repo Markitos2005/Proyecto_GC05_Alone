@@ -135,7 +135,7 @@ export function SearchFindingsPage() {
 
   // Primera búsqueda al entrar en la pantalla.
   useEffect(() => {
-    loadResults(EMPTY_FILTERS, 1);
+    void loadResults(EMPTY_FILTERS, 1);
   }, []);
 
   function handleFilterChange(event) {
