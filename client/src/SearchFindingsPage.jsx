@@ -153,7 +153,7 @@ export function SearchFindingsPage() {
     // Una búsqueda nueva empieza sin corte.
     setCorte(null);
 
-    loadResults(filters, 1);
+    void loadResults(filters, 1);
   }
 
   function handleClear() {
