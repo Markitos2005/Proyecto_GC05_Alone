@@ -22,43 +22,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Limitar analisis al componente C4
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar pruebas y generar cobertura C4
+        run: npm run test:coverage
+
+      - name: Comprobar informe LCOV
         shell: bash
-        run: |
-          python3 - <<'PY'
-          import subprocess
-          from pathlib import Path
-
-          permitidos = {
-              "client/src/PublishFindingPage.jsx",
-              "client/src/SearchFindingsPage.jsx",
-              "client/src/api/hallazgos.js",
-              "client/src/api/misHallazgos.js",
-              "client/src/PublishFindingPage.test.jsx",
-              "client/src/SearchFindingsPage.test.jsx",
-              "client/src/api/hallazgos.test.jsx",
-          }
-
-          archivos = subprocess.check_output(
-              ["git", "ls-files", "-z"]
-          ).decode().split("\0")
-
-          excluidos = [
-              archivo for archivo in archivos
-              if archivo and archivo not in permitidos
-          ]
-
-          with Path("sonar-project.properties").open(
-              "a", encoding="utf-8"
-          ) as f:
-              f.write("\nsonar.exclusions=" +
-                      ",".join(excluidos) + "\n")
-
-          print(f"Archivos excluidos: {len(excluidos)}")
-          PY
+        run: test -s coverage/lcov.info
 
       - name: Analizar con SonarCloud
         uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          args: -Dsonar.qualitygate.wait=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
