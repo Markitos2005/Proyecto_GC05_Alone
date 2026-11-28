@@ -21,5 +21,17 @@ export default defineConfig({
       'client/src/**/*.test.jsx',
     ],
     environment: 'node',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'json-summary'],
+      reportsDirectory: './coverage',
+      // Mismo código de producción C4 que analiza SonarCloud, incluso sin importar.
+      include: [
+        'client/src/PublishFindingPage.jsx',
+        'client/src/SearchFindingsPage.jsx',
+        'client/src/api/hallazgos.js',
+        'client/src/api/misHallazgos.js',
+      ],
+    },
   },
 });

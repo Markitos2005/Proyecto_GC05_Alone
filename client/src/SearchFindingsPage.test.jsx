@@ -225,6 +225,44 @@ it('envía los filtros seleccionados al buscar', async () => {
   });
 });
 
+it('limpia los filtros y vuelve a buscar en la primera página sin corte', async () => {
+  renderPage();
+
+  await screen.findByRole('heading', { name: 'Mochila azul ficticia' });
+
+  for (const [label, value] of [
+    ['Descripción', 'mochila azul'],
+    ['Facultad', 'fac-1'],
+    ['Categoría', 'cat-1'],
+    ['Desde', '2026-01-01'],
+    ['Hasta', '2026-01-31'],
+  ]) {
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  }
+
+  fireEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+  await waitFor(() => {
+    expect(api.searchHallazgos).toHaveBeenLastCalledWith({
+      q: 'mochila azul', categoriaId: 'cat-1', facultadId: 'fac-1',
+      fechaDesde: '2026-01-01', fechaHasta: '2026-01-31', pagina: 1, tamano: 12,
+    });
+  });
+  await screen.findByRole('heading', { name: 'Mochila azul ficticia' });
+
+  fireEvent.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+
+  await waitFor(() => {
+    expect(api.searchHallazgos).toHaveBeenLastCalledWith({
+      q: '', categoriaId: '', facultadId: '', fechaDesde: '', fechaHasta: '',
+      pagina: 1, tamano: 12,
+    });
+  });
+  for (const label of ['Descripción', 'Facultad', 'Categoría', 'Desde', 'Hasta']) {
+    expect(screen.getByLabelText(label).value).toBe('');
+  }
+  await screen.findByRole('heading', { name: 'Mochila azul ficticia' });
+});
+
 it('una nueva búsqueda comienza sin corte', async () => {
   api.getHallazgoOptions.mockResolvedValue(options);
 

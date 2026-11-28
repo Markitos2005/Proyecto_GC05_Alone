@@ -15,6 +15,7 @@
     "db:migrate": "node --env-file=.env server/scripts/migrate.js",
     "db:seed-dev": "node --env-file=.env server/scripts/seed-dev.js",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:db": "node --env-file=.env --test server/tests/postgres.test.js server/tests/recovery-tokens.postgres.test.js server/tests/recovery.postgres.test.js server/tests/hallazgos.postgres.test.js server/tests/hallazgos-storage.postgres.test.js server/tests/hallazgos-busqueda.postgres.test.js server/tests/mis-hallazgos.postgres.test.js server/tests/avisos.postgres.test.js",
     "test:monolith": "npm run build && node --env-file=.env --test server/tests/monolith.test.js"
   },
@@ -38,6 +39,7 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.9",
     "@vitejs/plugin-react": "^6.3.0",
+    "@vitest/coverage-v8": "5.1.0",
     "concurrently": "^10.0.7",
     "jsdom": "^26.1.0",
     "supertest": "^7.3.2",
